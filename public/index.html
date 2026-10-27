@@ -18,9 +18,8 @@
     }
     .font-rye { font-family: 'Rye', cursive; }
     
-    /* โต๊ะคาสิโนและลายไม้ */
     .poker-saloon-table {
-      background: radial-gradient(ellipse at center, #d97706 0%, #b45309 60%, #78350f 100%);
+      background: radial-gradient(ellipse at center, #ea580c 0%, #c2410c 60%, #7c2d12 100%);
       border: 14px solid #3e2213;
       border-radius: 170px;
       box-shadow: inset 0 0 60px rgba(0,0,0,0.85), 0 10px 40px rgba(0,0,0,0.95);
@@ -118,6 +117,7 @@
         <button id="btnAuthSubmit" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-2 rounded shadow-lg text-sm transition">
           เข้าสู่ระบบ
         </button>
+        <p id="txtAuthError" class="text-rose-400 text-[11px] text-center min-h-[14px]"></p>
       </div>
     </div>
   </div>
@@ -185,7 +185,7 @@
     </div>
   </div>
 
-  <!-- Modals -->
+  <!-- Modals สำหรับแต่งตัว, กติกา, สร้างห้อง, ธนาคาร ฯลฯ ซ่อนอยู่ -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -373,24 +373,16 @@
     
     <div class="flex items-center justify-between bg-stone-950/80 backdrop-blur border border-amber-900/80 rounded-xl px-3 py-1.5 text-xs shadow-lg z-40">
       <div class="flex items-center gap-2">
-        <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2.5 py-1 rounded border border-stone-700 text-[11px] font-bold">
-          <i class="fa-solid fa-arrow-left"></i> ออก
-        </button>
-        <button id="btnToggleSeat" class="bg-amber-700/80 hover:bg-amber-600 text-stone-950 font-bold px-2.5 py-1 rounded text-[11px] transition">
-          <i class="fa-solid fa-chair"></i> <span id="lblSeatAction">ลุกจากโต๊ะ</span>
-        </button>
+        <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2.5 py-1 rounded border border-stone-700 text-[11px] font-bold"><i class="fa-solid fa-arrow-left"></i> ออก</button>
+        <button id="btnToggleSeat" class="bg-amber-700/80 hover:bg-amber-600 text-stone-950 font-bold px-2.5 py-1 rounded text-[11px] transition"><i class="fa-solid fa-chair"></i> <span id="lblSeatAction">ลุกจากโต๊ะ</span></button>
         <div>
           <span class="text-amber-400 font-bold text-xs" id="hudRoomName">Saloon</span>
           <span class="text-stone-400 text-[10px] ml-1" id="hudRoomCode">#000000</span>
         </div>
       </div>
       <div class="flex items-center gap-1.5">
-        <button id="btnOpenRulesInGame" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60 flex items-center gap-1">
-          <i class="fa-solid fa-book"></i> กติกา
-        </button>
-        <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60">
-          <i class="fa-solid fa-scroll"></i> ประวัติ
-        </button>
+        <button id="btnOpenRulesInGame" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60 flex items-center gap-1"><i class="fa-solid fa-book"></i> กติกา</button>
+        <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60"><i class="fa-solid fa-scroll"></i> ประวัติ</button>
       </div>
     </div>
 
@@ -510,6 +502,66 @@
   </div>
 
   <script>
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        } catch (e) { console.error('AudioContext error:', e); }
+      }
+    }
+    
+    function playSound(type) {
+      try {
+        initAudio();
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'deal') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(350, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } else if (type === 'chip') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.setValueAtTime(1800, now + 0.03);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'win') {
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.frequency.setValueAtTime(freq, now + i * 0.09);
+            g.gain.setValueAtTime(0.25, now + i * 0.09);
+            g.gain.exponentialRampToValueAtTime(0.01, now + (i + 1) * 0.12);
+            o.start(now + i * 0.09);
+            o.stop(now + (i + 1) * 0.12);
+          });
+        } else if (type === 'bell') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      } catch (e) {}
+    }
+
     const socket = io();
     let currentUser = null;
     let isRegisterMode = false;
@@ -518,55 +570,8 @@
     let currentRoomState = null;
     let tempHatColor = '#4a2e18';
     let pendingReconnectRoomCode = null;
+    const dealtCardsCount = {};
 
-    // Web Audio FX
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      const now = audioCtx.currentTime;
-      if (type === 'deal') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(350, now);
-        osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now);
-        osc.stop(now + 0.1);
-      } else if (type === 'chip') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, now);
-        osc.frequency.setValueAtTime(1800, now + 0.03);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-        osc.start(now);
-        osc.stop(now + 0.08);
-      } else if (type === 'win') {
-        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-          const o = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
-          o.connect(g);
-          g.connect(audioCtx.destination);
-          o.frequency.setValueAtTime(freq, now + i * 0.09);
-          g.gain.setValueAtTime(0.25, now + i * 0.09);
-          g.gain.exponentialRampToValueAtTime(0.01, now + (i + 1) * 0.12);
-          o.start(now + i * 0.09);
-          o.stop(now + (i + 1) * 0.12);
-        });
-      } else if (type === 'bell') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, now);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-        osc.start(now);
-        osc.stop(now + 0.35);
-      }
-    }
-
-    // LocalStorage Backup
     function saveLocalDbBackup(allDb) {
       if (allDb && typeof allDb === 'object') {
         localStorage.setItem('fiwteetak_users_db_backup', JSON.stringify(allDb));
@@ -586,6 +591,7 @@
     const screenAuth = document.getElementById('screenAuth');
     const screenLobby = document.getElementById('screenLobby');
     const screenGame = document.getElementById('screenGame');
+
     const modalCreateRoom = document.getElementById('modalCreateRoom');
     const modalBank = document.getElementById('modalBank');
     const modalAdmin = document.getElementById('modalAdmin');
@@ -607,7 +613,6 @@
       document.getElementById('boxWinningReveal').classList.add('hidden');
     }
 
-    // กราฟิก SVG แน่นๆ ดุดัน
     function generateTopDownCowboySVG(avatarObj, isTurn = false, isMe = false, isWaiting = false) {
       const avatar = avatarObj || {};
       const hat = avatar.hatStyle || 'cattleman';
@@ -651,7 +656,7 @@
         hatCrown = `<ellipse cx="40" cy="39" rx="16" ry="12" fill="${hatCol}" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.7))"/>
                     <path d="M40 32 L40 46" stroke="#0f172a" stroke-width="2"/>
                     <line x1="24" y1="39" x2="56" y2="39" stroke="#991b1b" stroke-width="2.5"/>`;
-      } else { // cattleman
+      } else { 
         hatBrim = `<ellipse cx="40" cy="40" rx="35" ry="28" fill="${hatCol}" stroke="#27150c" stroke-width="1.5"/>
                    <path d="M10 40 Q40 31 70 40" stroke="#170c06" stroke-width="2.5" fill="none"/>`;
         hatCrown = `<ellipse cx="40" cy="40" rx="15" ry="15" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/>
@@ -672,7 +677,7 @@
 
       return `
         <div class="relative flex flex-col items-center" style="${waitingStyle}">
-          <svg viewBox="0 0 80 80" width="80" height="80" class="overflow-visible">
+          <svg viewBox="0 0 80 80" width="76" height="76" class="overflow-visible">
             <ellipse cx="40" cy="55" rx="30" ry="14" fill="${sleeve}" filter="drop-shadow(0 4px 4px rgba(0,0,0,0.5))"/>
             <path d="M30 42 L50 42 L45 60 L35 60 Z" fill="#1f2937" opacity="0.8"/>
             <circle cx="40" cy="48" r="1.5" fill="#fbbf24"/>
@@ -723,14 +728,17 @@
       const u = document.getElementById('authUsername').value.trim();
       const p = document.getElementById('authPassword').value.trim();
       const err = document.getElementById('txtAuthError');
-      err.innerText = '';
+      err.innerText = 'กำลังเชื่อมต่อ...';
       if (!u || !p) return err.innerText = 'กรุณากรอกข้อมูลให้ครบ';
 
+      let responded = false;
       const evt = isRegisterMode ? 'auth:register' : 'auth:login';
       socket.emit(evt, { username: u, password: p }, (res) => {
+        responded = true;
         if (!res.success) {
           err.innerText = res.msg || 'เกิดข้อผิดพลาด';
         } else {
+          err.innerText = '';
           currentUser = res.user;
           saveLocalDbBackup(res.allDb);
           screenAuth.classList.add('hidden');
@@ -745,6 +753,10 @@
           }
         }
       });
+      
+      setTimeout(() => {
+        if (!responded) err.innerText = 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณารอสักครู่...';
+      }, 3000);
     };
 
     document.getElementById('btnReconnectAccept').onclick = () => {
@@ -1058,9 +1070,6 @@
       playSound('chip');
     };
 
-    // ตัวแปรเก็บจำนวนไพ่ที่ถูกแจกใน UI 
-    const dealtCardsCount = {};
-
     socket.on('game:state_sync', (state) => {
       currentRoomState = state;
       document.getElementById('hudRoomName').innerText = state.name;
@@ -1077,19 +1086,14 @@
         sliderBet.max = maxVal;
       }
 
-      // หงายไพ่ 4 ใบของตนเอง (แบบค่อยๆ ปรากฏทีละใบถ้ามาจากการแจก)
       updateHeroHandVisuals(me, state);
-
       checkPlayerTurnLock(state);
-      
-      // อัปเดตตัวละครและไพ่ที่โต๊ะแบบไม่ให้กระพริบหาย
       renderTopDownSeats(state.players, state.activeTurnIndex, state.isGameRunning, state.cardsDealt);
     });
 
     function updateHeroHandVisuals(me, state) {
       const handBox = document.getElementById('myHandCards');
       if (me && me.hand && me.hand.length > 0 && !isSpectating && !me.isWaiting && state.isGameRunning) {
-        // หากเซิร์ฟเวอร์บอกว่าแจกครบแล้ว (เช่น จอยกลางเกม หรือ สคิปแอนิเมชัน)
         if (state.cardsDealt) {
           handBox.innerHTML = '';
           me.hand.forEach(c => {
@@ -1111,27 +1115,23 @@
       }
     }
 
-    // แอนิเมชันแจกไพ่ทีละใบจนครบ 4 ใบทั้งที่โต๊ะและในมือ[cite: 12]
+    // แอนิเมชันแจกไพ่ทีละใบ 4 ใบ
     socket.on('game:dealing_cards', () => {
       resetCommunityShowcase();
       const layer = document.getElementById('dealAnimationLayer');
       layer.innerHTML = '';
       
       if (!currentRoomState || !currentRoomState.players) return;
-      
       const activePlayers = currentRoomState.players.filter(p => !p.isWaiting);
       const total = currentRoomState.players.length;
       let myIdx = currentRoomState.players.findIndex(p => p.username === currentUser.username);
       if (myIdx === -1) myIdx = 0;
 
-      // ล้างไพ่คว่ำและไพ่ในมือก่อนเริ่มแจก
       activePlayers.forEach(p => { dealtCardsCount[p.username] = 0; });
       document.getElementById('myHandCards').innerHTML = '';
       renderTopDownSeats(currentRoomState.players, currentRoomState.activeTurnIndex, true, false);
 
       let delayMs = 0;
-      
-      // แจกไพ่ 4 รอบ (คนละ 4 ใบ)
       for (let round = 0; round < 4; round++) {
         activePlayers.forEach((p) => {
           const idx = currentRoomState.players.findIndex(x => x.username === p.username);
@@ -1145,7 +1145,6 @@
           const cosA = Math.cos(angle);
           const sinA = Math.sin(angle);
           
-          // คำนวณเวกเตอร์เป้าหมายให้ไพ่วางตรงจุดข้างตัวละครเป๊ะๆ
           const targetLeft = charLeft - cosA * 5.0 - sinA * 4.5;
           const targetTop = charTop - sinA * 5.0 + cosA * 4.5;
 
@@ -1157,44 +1156,33 @@
             card.style.top = '28%';
             layer.appendChild(card);
             
-            // สั่งให้ CSS Transition วิ่งไปที่ Target
             setTimeout(() => {
               card.style.left = `${targetLeft}%`;
               card.style.top = `${targetTop}%`;
               card.style.transform = `translate(-50%, -50%) rotate(360deg)`;
-            }, 10); // Force reflow
+            }, 10);
 
-            // เมื่อไพ่บินถึง (0.5 วินาที)
             setTimeout(() => {
               card.remove();
               dealtCardsCount[p.username]++;
               updateSeatCardsVisual(p);
             }, 500);
-
           }, delayMs);
-          
-          delayMs += 100; // ห่างกัน 0.1 วินาทีต่อใบ
+          delayMs += 100;
         });
       }
     });
 
-    // อัปเดตไพ่คว่ำข้างตัวละครทีละใบแบบสดๆ
     function updateSeatCardsVisual(p) {
       const container = document.getElementById(`seat_cards_${p.username}`);
       if (container) {
-        let html = '';
         const rotations = [-12, -4, 4, 12];
         const count = dealtCardsCount[p.username] || 0;
-        for (let i = 0; i < count; i++) {
-          html += `<div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform rotate-[${rotations[i]}deg] ${i > 0 ? '-ml-2.5' : ''}"></div>`;
-        }
-        // แปลงเป็น Inline Style เพราะ Tailwind ไม่รองรับ Arbitrary Rotate แบบ Dynamic ง่ายๆ
         container.innerHTML = Array.from({length: count}).map((_, i) => 
           `<div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md ${i > 0 ? '-ml-2.5' : ''}" style="transform: rotate(${rotations[i]}deg)"></div>`
         ).join('');
       }
 
-      // ถ้าเป็นตาเรา ให้หงายไพ่ในมือขึ้นมาทีละใบ
       if (p.username === currentUser.username && p.hand) {
         const handBox = document.getElementById('myHandCards');
         const cIndex = (dealtCardsCount[p.username] || 1) - 1;
@@ -1209,6 +1197,22 @@
           `;
         }
       }
+    }
+
+    function checkPlayerTurnLock(state) {
+      if (!state.isGameRunning || !state.cardsDealt) {
+        setBettingControlsEnabled(false);
+        return;
+      }
+      const activePlayer = state.players[state.activeTurnIndex];
+      const isMyTurn = activePlayer && activePlayer.username === currentUser.username && !isSpectating && !activePlayer.isWaiting;
+      setBettingControlsEnabled(isMyTurn);
+    }
+
+    function setBettingControlsEnabled(enabled) {
+      document.getElementById('btnBetAction').disabled = !enabled;
+      document.getElementById('inputBetNumber').disabled = !enabled;
+      document.getElementById('sliderBet').disabled = !enabled;
     }
 
     function renderTopDownSeats(players, activeIndex, isGameRunning, cardsDealt) {
@@ -1231,18 +1235,17 @@
         const ry = 39;
         const charLeft = 50 + rx * Math.cos(angle);
         const charTop = 50 + ry * Math.sin(angle);
+
         const cosA = Math.cos(angle);
         const sinA = Math.sin(angle);
         const perpX = -sinA;
         const perpY = cosA;
 
-        // เป้าหมายของไพ่คว่ำข้างตัว
         const cardLeft = charLeft - cosA * 5.0 - sinA * 4.5;
         const cardTop = charTop - sinA * 5.0 + cosA * 4.5;
         const chipLeft = charLeft - cosA * 6.5 + sinA * 4.5;
         const chipTop = charTop - sinA * 6.5 - cosA * 4.5;
 
-        // ถ้าสถานะไพ่แจกเสร็จแล้ว (จาก Server Sync) ให้มี 4 ใบเลย
         let initialCardsHTML = '';
         if (isGameRunning && cardsDealt && !p.isWaiting) {
           const rotations = [-12, -4, 4, 12];
@@ -1263,7 +1266,6 @@
             </div>
           </div>
           
-          <!-- กล่องใส่ไพ่คว่ำประจำที่นั่ง -->
           <div id="seat_cards_${p.username}" class="absolute transform -translate-x-1/2 -translate-y-1/2 flex z-20 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
             ${initialCardsHTML}
           </div>
@@ -1278,7 +1280,20 @@
       });
     }
 
-    // Server events callbacks
+    socket.on('game:need_start_click', (msg) => {
+      document.getElementById('txtGameStatus').innerText = msg;
+      resetCommunityShowcase();
+      const playerCount = currentRoomState && currentRoomState.players ? currentRoomState.players.filter(p => !p.isWaiting).length : 0;
+      if (playerCount >= 2) document.getElementById('btnStartGameAction').classList.remove('hidden');
+      else document.getElementById('btnStartGameAction').classList.add('hidden');
+      setBettingControlsEnabled(false);
+    });
+
+    document.getElementById('btnStartGameAction').onclick = () => {
+      document.getElementById('btnStartGameAction').classList.add('hidden');
+      socket.emit('game:start_click');
+    };
+
     socket.on('game:turn_start', ({ activeUsername, activeDisplayName, timeoutSec }) => {
       const isMe = activeUsername === currentUser.username;
       const targetName = activeDisplayName || activeUsername;
@@ -1286,12 +1301,11 @@
       resetCommunityShowcase();
       if (isMe) playSound('bell');
       setBettingControlsEnabled(isMe);
-
       const timerBox = document.getElementById('boxTimer');
       const timerLbl = document.getElementById('lblCountdown');
       timerBox.classList.remove('hidden');
       
-      let left = timeoutSec || 30; // ใช้เวลา 30 วิ
+      let left = timeoutSec || 30;
       timerLbl.innerText = left;
       clearInterval(turnTimerInterval);
       turnTimerInterval = setInterval(() => {
@@ -1344,9 +1358,9 @@
     });
 
     socket.on('game:msg', (msg) => alert(msg));
-    
     document.getElementById('btnHistory').onclick = () => { renderRoundHistoryModal(); modalHistory.classList.remove('hidden'); };
     document.getElementById('btnCloseHistory').onclick = () => modalHistory.classList.add('hidden');
+    
     function renderRoundHistoryModal() {
       const box = document.getElementById('boxHistContent');
       if (!currentRoomState || !currentRoomState.roundHistory || currentRoomState.roundHistory.length === 0) {

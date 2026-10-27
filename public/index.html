@@ -58,7 +58,6 @@
       filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6));
     }
 
-    /* แอนิเมชันแจกไพ่พุ่งออกจากสำรับกลางโต๊ะ */
     @keyframes dealFly {
       0% {
         top: 50%;
@@ -147,7 +146,7 @@
         <span class="text-2xl sm:text-3xl text-amber-500 font-rye">FiwTeeTak</span>
         <div class="flex items-center gap-2 bg-stone-800 border border-stone-700 px-2.5 py-1 rounded-full text-stone-300 text-xs">
           <div id="lobbyAvatarPreview" class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-stone-950 border border-amber-500/50"></div>
-          <span>ผู้เล่น: <b id="lblPlayerUsername" class="text-amber-400">-</b></span>
+          <span>ชื่อเล่น: <b id="lblPlayerUsername" class="text-amber-400">-</b></span>
         </div>
       </div>
 
@@ -157,7 +156,7 @@
           <span id="lblPlayerChips" class="font-bold text-amber-300">0</span>
         </div>
         <button id="btnOpenWardrobe" class="bg-stone-800 hover:bg-stone-700 border border-amber-600/60 px-2.5 py-1 rounded-lg text-xs text-amber-300 font-semibold flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-hat-cowboy"></i> แต่งตัว
+          <i class="fa-solid fa-hat-cowboy"></i> แต่งตัว & ชื่อ
         </button>
         <button id="btnDailyBonus" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-stone-950 font-bold px-2 py-1 rounded-lg text-xs shadow flex items-center gap-1">
           <i class="fa-solid fa-gift"></i> รับ 2,000 ฟรี
@@ -176,7 +175,6 @@
 
     <!-- Main Lobby Split -->
     <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-3 overflow-hidden">
-      <!-- คอลัมน์ซ้าย: รายการห้อง + ช่องค้นหาเลขห้อง -->
       <div class="lg:col-span-2 bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h2 class="text-sm font-bold text-amber-400 flex items-center gap-1.5">
@@ -197,7 +195,6 @@
         <div id="listRooms" class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2.5 pr-1 custom-scrollbar"></div>
       </div>
 
-      <!-- คอลัมน์ขวา: แชทกลางล็อบบี้ -->
       <div class="bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
         <h3 class="text-xs font-bold text-amber-400 border-b border-stone-800 pb-2 mb-2 flex items-center gap-1.5">
           <i class="fa-solid fa-comments"></i> แชทกลางล็อบบี้ (Global Chat)
@@ -211,21 +208,29 @@
     </div>
   </div>
 
-  <!-- ================= MODAL แต่งตัวคาวบอย (7 สไตล์หมวก + 12 โทนสี) ================= -->
+  <!-- ================= MODAL แต่งตัวคาวบอย & ตั้งชื่อเล่น (WARDROBE & NICKNAME) ================= -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
-    <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col">
+    <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
         <h3 class="text-base font-bold text-amber-400 flex items-center gap-2">
-          <i class="fa-solid fa-hat-cowboy-side"></i> แต่งตัวคาวบอย Top-Down
+          <i class="fa-solid fa-user-pen"></i> แต่งตัว & ตั้งชื่อเล่นคาวบอย
         </h3>
         <button id="btnCloseWardrobe" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="flex items-center justify-center py-2 mb-3">
-        <div id="wardrobeBigPreview" class="w-28 h-28 rounded-full border-2 border-amber-500 bg-amber-950/40 p-2 shadow-inner flex items-center justify-center"></div>
+      <div class="flex items-center justify-center py-1 mb-2">
+        <div id="wardrobeBigPreview" class="w-24 h-24 rounded-full border-2 border-amber-500 bg-amber-950/40 p-1.5 shadow-inner flex items-center justify-center"></div>
       </div>
 
-      <div class="space-y-3 text-xs">
+      <div class="space-y-2.5 text-xs overflow-y-auto pr-1 custom-scrollbar">
+        <!-- ช่องตั้งชื่อเล่น (Nickname / Display Name) -->
+        <div>
+          <label class="block text-amber-300 font-bold mb-1">
+            <i class="fa-solid fa-id-badge"></i> ชื่อเล่นที่แสดงในเกม (Display Name)
+          </label>
+          <input type="text" id="inputCustomNickname" maxlength="16" class="w-full bg-stone-800 border border-amber-600/70 rounded px-3 py-1.5 text-white font-bold focus:outline-none focus:border-amber-400" placeholder="ตั้งชื่อเล่นเท่ๆ ของคุณ">
+        </div>
+
         <div>
           <label class="block text-stone-300 mb-1">สไตล์หมวกคาวบอย (7 แบบ)</label>
           <select id="selHatStyle" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-white">
@@ -268,9 +273,9 @@
         </div>
       </div>
 
-      <div class="flex justify-end gap-2 mt-4 pt-2 border-t border-stone-800">
+      <div class="flex justify-end gap-2 mt-3 pt-2 border-t border-stone-800">
         <button id="btnSaveWardrobe" class="w-full bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold py-2 rounded text-xs transition">
-          บันทึกชุดแต่งกาย
+          บันทึกชื่อและชุดแต่งกาย
         </button>
       </div>
     </div>
@@ -314,7 +319,7 @@
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">ผู้เล่นสูงสุด</label>
-          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
+          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white">
             <option value="2">2 คน</option>
             <option value="4">4 คน</option>
             <option value="6" selected>6 คน</option>
@@ -323,7 +328,7 @@
         </div>
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">รูปแบบห้อง</label>
-          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
+          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white">
             <option value="bot">เติมบอทอัตโนมัติ (เริ่มได้ทันที)</option>
             <option value="human">เล่นกับคนเท่านั้น (รอคนครบ 2 คน)</option>
           </select>
@@ -369,7 +374,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL ประวัติแบบรอบต่อรอบ (ROUND-BY-ROUND HISTORY) ================= -->
+  <!-- ================= MODAL ประวัติแบบรอบต่อรอบ ================= -->
   <div id="modalHistory" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-lg bg-stone-900 border border-amber-600 rounded-2xl p-4 shadow-2xl flex flex-col max-h-[82vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -382,7 +387,7 @@
     </div>
   </div>
 
-  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE - GOVERNOR OF POKER 3 STYLE) ================= -->
+  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE) ================= -->
   <div id="screenGame" class="hidden relative w-full h-full max-w-[1140px] max-h-[680px] flex flex-col justify-between p-2">
     <!-- Top HUD Bar -->
     <div class="flex items-center justify-between bg-stone-950/80 backdrop-blur border border-amber-900/80 rounded-xl px-3 py-1 text-xs shadow-lg z-40">
@@ -412,7 +417,7 @@
       </div>
     </div>
 
-    <!-- Table Felt & Top-Down Seats Area -->
+    <!-- Table Felt -->
     <div class="table-wood-rim relative flex-1 my-1 flex items-center justify-center">
       <div class="poker-saloon-table w-full h-full flex items-center justify-center overflow-hidden">
         
@@ -421,14 +426,12 @@
           <div class="text-[10px] uppercase font-bold tracking-widest text-amber-900">Saloon Poker Table</div>
         </div>
 
-        <!-- สำรับไพ่กลางโต๊ะสำหรับสร้างแอนิเมชันแจกไพ่ -->
         <div id="deckCenterPile" class="absolute top-[28%] z-15 flex flex-col items-center pointer-events-none">
           <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl relative">
             <div class="absolute inset-0 flex items-center justify-center text-blue-200 opacity-60 text-xs font-bold">♠</div>
           </div>
         </div>
 
-        <!-- ชิป POT กลางโต๊ะ -->
         <div class="absolute top-[37%] flex flex-col items-center pointer-events-none z-10">
           <div class="flex items-center gap-1.5 bg-black/50 border border-amber-500/50 px-3 py-0.5 rounded-full shadow-lg">
             <i class="fa-solid fa-circle-dot text-amber-400 text-[10px] animate-spin"></i>
@@ -436,7 +439,7 @@
           </div>
         </div>
 
-        <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
+        <!-- ไพ่กองกลาง & ไพ่ชนะ -->
         <div class="relative z-30 flex flex-col items-center mt-6">
           <div id="boxShowcase" class="flex items-center gap-5 mb-1 min-h-[85px]">
             <div class="flex flex-col items-center">
@@ -459,17 +462,14 @@
         <!-- ที่นั่งตัวละครรอบโต๊ะ -->
         <div id="seatsContainer" class="absolute inset-0 pointer-events-none"></div>
 
-        <!-- เลเยอร์อนิเมชันแจกไพ่ -->
         <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-35"></div>
 
-        <!-- ปุ่มเปิด/ปิด หน้าต่างแชทในห้อง -->
         <div class="absolute bottom-3 left-4 z-40 pointer-events-auto">
           <button id="btnToggleRoomChat" class="bg-stone-950/80 hover:bg-stone-900 border border-amber-600/60 text-amber-400 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition">
             <i class="fa-solid fa-comment-dots text-sm"></i>
           </button>
         </div>
 
-        <!-- กล่องแชทห้อง Pop-up -->
         <div id="boxRoomChatPopup" class="hidden absolute bottom-14 left-4 z-50 w-64 bg-stone-950/95 border border-amber-800 rounded-xl p-2.5 shadow-2xl flex flex-col pointer-events-auto text-xs">
           <div class="flex justify-between items-center border-b border-stone-800 pb-1.5 mb-2">
             <span class="font-bold text-amber-400"><i class="fa-solid fa-comments"></i> แชทในโต๊ะ</span>
@@ -484,7 +484,7 @@
       </div>
     </div>
 
-    <!-- Controls Bottom Bar (Action Bar) -->
+    <!-- Controls Bottom Bar -->
     <div id="controlsBar" class="bg-stone-950/90 border border-amber-900/80 rounded-xl p-2 flex flex-wrap items-center justify-between gap-2 shadow-2xl z-40">
       <div class="flex items-center gap-1.5">
         <span class="text-[11px] text-amber-200 font-bold mr-1">ไพ่ในมือ:</span>
@@ -527,7 +527,7 @@
     const modalHistory = document.getElementById('modalHistory');
     const btnAdminPanel = document.getElementById('btnAdminPanel');
 
-    // === TOP-DOWN COWBOY ENGINE (7 สไตล์หมวกสมจริง)[cite: 13] ===
+    // === TOP-DOWN COWBOY SVG ENGINE (7 หมวก + แขนเท้าขอบโต๊ะ)[cite: 13] ===
     function generateTopDownCowboySVG(avatar = {}, isTurn = false, isMe = false) {
       const hat = avatar.hatStyle || 'cattleman';
       const hatCol = avatar.hatColor || '#4a2e18';
@@ -588,14 +588,12 @@
           <svg viewBox="0 0 80 80" width="76" height="76" class="overflow-visible">
             <ellipse cx="40" cy="55" rx="30" ry="13" fill="${sleeve}"/>
 
-            <!-- แขนซ้ายและมือเท้าขอบโต๊ะ[cite: 13] -->
             <path d="M14 50 Q8 40 16 28" stroke="${sleeve}" stroke-width="8" stroke-linecap="round" fill="none"/>
             <ellipse cx="16" cy="26" rx="6" ry="5" fill="${skin}" class="hands-on-felt"/>
             <circle cx="13" cy="23" r="1.8" fill="${skin}"/>
             <circle cx="17" cy="22" r="1.8" fill="${skin}"/>
             <circle cx="21" cy="23" r="1.8" fill="${skin}"/>
 
-            <!-- แขนขวาและมือเท้าขอบโต๊ะ[cite: 13] -->
             <path d="M66 50 Q72 40 64 28" stroke="${sleeve}" stroke-width="8" stroke-linecap="round" fill="none"/>
             <ellipse cx="64" cy="26" rx="6" ry="5" fill="${skin}" class="hands-on-felt"/>
             <circle cx="59" cy="23" r="1.8" fill="${skin}"/>
@@ -610,7 +608,7 @@
       `;
     }
 
-    // Toggle Password Visibility
+    // Toggle Password
     document.getElementById('btnTogglePassword').onclick = () => {
       const p = document.getElementById('authPassword');
       const isPass = p.type === 'password';
@@ -618,7 +616,7 @@
       document.getElementById('iconTogglePassword').className = isPass ? 'fa-solid fa-eye-slash text-xs' : 'fa-solid fa-eye text-xs';
     };
 
-    // Tabs Login / Register
+    // Tabs
     document.getElementById('tabBtnLogin').onclick = () => {
       isRegisterMode = false;
       document.getElementById('tabBtnLogin').className = "flex-1 py-1.5 text-center text-amber-400 font-bold border-b-2 border-amber-500 text-sm";
@@ -654,7 +652,8 @@
 
     function updateLobbyUI() {
       if (!currentUser) return;
-      document.getElementById('lblPlayerUsername').innerText = currentUser.username;
+      const displayName = currentUser.displayName || currentUser.username;
+      document.getElementById('lblPlayerUsername').innerText = displayName;
       document.getElementById('lblPlayerChips').innerText = (currentUser.chips || 0).toLocaleString();
       document.getElementById('lobbyAvatarPreview').innerHTML = generateTopDownCowboySVG(currentUser.avatar);
 
@@ -696,7 +695,8 @@
     socket.on('chat:global_broadcast', ({ sender, text, time }) => {
       const box = document.getElementById('boxGlobalChat');
       if (!box) return;
-      const isMe = currentUser && sender === currentUser.username;
+      const myDisplayName = currentUser ? (currentUser.displayName || currentUser.username) : '';
+      const isMe = sender === myDisplayName;
       box.innerHTML += `
         <div class="bg-stone-950/60 p-1.5 rounded border border-stone-800">
           <div class="flex justify-between items-center text-[10px]">
@@ -743,9 +743,10 @@
       }
     });
 
-    // Wardrobe System
+    // Wardrobe & Nickname Modal
     document.getElementById('btnOpenWardrobe').onclick = () => {
       const av = currentUser.avatar || {};
+      document.getElementById('inputCustomNickname').value = currentUser.displayName || currentUser.username;
       document.getElementById('selHatStyle').value = av.hatStyle || 'cattleman';
       document.getElementById('selHatBadge').value = av.badge || 'star';
       tempHatColor = av.hatColor || '#4a2e18';
@@ -774,19 +775,21 @@
     }
 
     document.getElementById('btnSaveWardrobe').onclick = () => {
-      const updated = {
+      const newNick = document.getElementById('inputCustomNickname').value.trim();
+      const updatedAvatar = {
         hatStyle: document.getElementById('selHatStyle').value,
         hatColor: tempHatColor,
         badge: document.getElementById('selHatBadge').value,
         skinTone: '#ffd1a4',
         sleeveColor: '#881337'
       };
-      socket.emit('user:update_avatar', { avatar: updated }, (res) => {
+
+      socket.emit('user:update_avatar', { avatar: updatedAvatar, displayName: newNick }, (res) => {
         if (res.success) {
-          currentUser.avatar = updated;
+          currentUser = res.user;
           updateLobbyUI();
           modalWardrobe.classList.add('hidden');
-          alert('แต่งตัวเสร็จเรียบร้อย!');
+          alert('บันทึกชื่อเล่นและชุดแต่งกายเรียบร้อยแล้ว!');
         }
       });
     };
@@ -804,7 +807,8 @@
         document.getElementById('adminUserList').innerHTML = res.list.map(u => `
           <div class="bg-stone-800 p-2.5 rounded-lg border border-stone-700 flex items-center justify-between text-xs">
             <div>
-              <span class="font-bold text-amber-300">${u.username}</span>
+              <span class="font-bold text-amber-300">${u.displayName || u.username}</span>
+              <span class="text-stone-400 text-[10px] ml-1">(@${u.username})</span>
               <span class="text-stone-400 text-[10px] ml-2">🪙 ${u.chips.toLocaleString()}</span>
             </div>
             <div class="flex gap-1">
@@ -871,14 +875,16 @@
 
     // Rooms & Navigation
     document.getElementById('btnOpenCreateRoom').onclick = () => {
-      document.getElementById('newRoomName').value = `${currentUser.username}'s Saloon`;
+      const myDisplayName = currentUser ? (currentUser.displayName || currentUser.username) : 'Saloon';
+      document.getElementById('newRoomName').value = `${myDisplayName}'s Saloon`;
       modalCreateRoom.classList.remove('hidden');
     };
     document.getElementById('btnCloseCreateRoom').onclick = () => modalCreateRoom.classList.add('hidden');
     document.getElementById('btnCancelCreateRoom').onclick = () => modalCreateRoom.classList.add('hidden');
 
     document.getElementById('btnSubmitCreateRoom').onclick = () => {
-      const rName = document.getElementById('newRoomName').value.trim() || `${currentUser.username}'s Saloon`;
+      const myDisplayName = currentUser ? (currentUser.displayName || currentUser.username) : 'Saloon';
+      const rName = document.getElementById('newRoomName').value.trim() || `${myDisplayName}'s Saloon`;
       const maxP = document.getElementById('newMaxPlayers').value;
       const mode = document.getElementById('newRoomMode').value;
       const pass = document.getElementById('newRoomPassword').value.trim() || null;
@@ -954,7 +960,7 @@
       else socket.emit('game:stand_up');
     };
 
-    // === GAME TABLE SYNC ===
+    // Game Table Sync
     socket.on('game:state_sync', (state) => {
       currentRoomState = state;
       document.getElementById('hudRoomName').innerText = state.name;
@@ -985,7 +991,6 @@
       renderTopDownSeats(state.players, state.activeTurnIndex);
     });
 
-    // แอนิเมชันแจกไพ่พุ่งออกจากสำรับกลางโต๊ะ
     socket.on('game:dealing_cards', () => {
       const layer = document.getElementById('dealAnimationLayer');
       layer.innerHTML = '';
@@ -1028,7 +1033,7 @@
       input.disabled = !enabled;
     }
 
-    // เรนเดอร์ตัวละครพร้อมจัดวางตำแหน่งไพ่คว่ำบนสักหลาดให้สวยงาม ไม่ทับตัวละคร[cite: 13]
+    // เรนเดอร์ตัวละครพร้อมชื่อเล่น[cite: 13]
     function renderTopDownSeats(players, activeIndex) {
       const c = document.getElementById('seatsContainer');
       c.innerHTML = '';
@@ -1041,6 +1046,7 @@
       players.forEach((p, idx) => {
         const isTurn = idx === activeIndex;
         const isMe = p.username === currentUser.username;
+        const displayName = p.displayName || p.username;
         const relIdx = (idx - myIdx + total) % total;
         const angle = (relIdx / total) * 2 * Math.PI + Math.PI / 2;
 
@@ -1049,34 +1055,29 @@
         const left = 50 + rx * Math.cos(angle);
         const top = 50 + ry * Math.sin(angle);
 
-        // วางไพ่คว่ำ 2 ใบให้เยื้องเข้าไปด้านในโต๊ะสักหลาดอย่างพอเหมาะ[cite: 13]
         const cardLeft = 50 + (rx - 14) * Math.cos(angle);
         const cardTop = 50 + (ry - 12) * Math.sin(angle);
 
-        // วางชิปเดิมพันเยื้องเข้าไปข้างในโต๊ะ[cite: 13]
         const chipLeft = 50 + (rx - 21) * Math.cos(angle);
         const chipTop = 50 + (ry - 18) * Math.sin(angle);
 
         c.innerHTML += `
-          <!-- ตัวละคร Top-Down[cite: 13] -->
           <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto z-20" style="left: ${left}%; top: ${top}%;">
-            <div id="bubble_${p.username}" class="hidden chat-bubble bg-amber-400 text-stone-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-lg border border-amber-600 mb-1 z-30 whitespace-nowrap"></div>
+            <div id="bubble_${displayName}" class="hidden chat-bubble bg-amber-400 text-stone-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-lg border border-amber-600 mb-1 z-30 whitespace-nowrap"></div>
 
             ${generateTopDownCowboySVG(p.avatar, isTurn, isMe)}
             
             <div class="bg-stone-950/95 border ${isTurn ? 'border-amber-400 gold-glow' : 'border-stone-700'} px-2 py-0.5 rounded-lg text-center shadow-xl -mt-2 min-w-[76px]">
-              <div class="text-[10px] font-black text-amber-200 truncate max-w-[85px]">${p.username}</div>
+              <div class="text-[10px] font-black text-amber-200 truncate max-w-[85px]">${displayName}</div>
               <div class="text-[9px] text-amber-400 font-bold">${p.chips.toLocaleString()} 🪙</div>
             </div>
           </div>
 
-          <!-- ไพ่คว่ำ 2 ใบประจำที่นั่งบนสักหลาด[cite: 13] -->
           <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-1 z-10 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
             <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform -rotate-12"></div>
             <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform rotate-6"></div>
           </div>
 
-          <!-- กองชิปเดิมพันหน้าผู้เล่น[cite: 13] -->
           ${p.lastBet > 0 ? `
             <div class="absolute transform -translate-x-1/2 -translate-y-1/2 chip-stack flex items-center gap-1 bg-black/75 border border-amber-500/80 px-2 py-0.5 rounded-full z-15" style="left: ${chipLeft}%; top: ${chipTop}%;">
               <i class="fa-solid fa-coins text-amber-400 text-[10px]"></i>
@@ -1090,7 +1091,6 @@
     socket.on('game:need_start_click', (msg) => {
       document.getElementById('txtGameStatus').innerText = msg;
       
-      // ตรวจสอบว่าในห้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปหรือไม่
       const playerCount = currentRoomState && currentRoomState.players ? currentRoomState.players.length : 0;
       if (playerCount >= 2) {
         document.getElementById('btnStartGameAction').classList.remove('hidden');
@@ -1105,9 +1105,10 @@
       socket.emit('game:start_click');
     };
 
-    socket.on('game:turn_start', ({ activeUsername, timeoutSec }) => {
+    socket.on('game:turn_start', ({ activeUsername, activeDisplayName, timeoutSec }) => {
       const isMe = activeUsername === currentUser.username;
-      document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `รอ ${activeUsername} เดิมพัน...`;
+      const targetName = activeDisplayName || activeUsername;
+      document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `รอ ${targetName} เดิมพัน...`;
       
       setBettingControlsEnabled(isMe);
 
@@ -1167,7 +1168,7 @@
 
     socket.on('game:msg', (msg) => alert(msg));
 
-    // === ประวัติแบบรอบต่อรอบ (ROUND-BY-ROUND MODAL) ===
+    // Round History Modal
     document.getElementById('btnHistory').onclick = () => {
       renderRoundHistoryModal();
       modalHistory.classList.remove('hidden');

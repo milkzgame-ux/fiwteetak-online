@@ -4,65 +4,464 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>FiwTeeTak - Saloon Online</title>
-  <!-- Socket.io Client -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- Tailwind CSS & Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    /* CSS Styling โต๊ะสักหลาดแดงและ Saloon Theme */
-    body { background-color: #120907; color: #fff; font-family: sans-serif; overflow: hidden; }
-    .table-felt {
-      background: radial-gradient(ellipse at center, #931a1a 0%, #4a0808 70%, #1a0202 100%);
-      border: 14px solid #3d2314;
-      box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.9);
-      border-radius: 200px;
+    body {
+      font-family: 'Sarabun', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      background-color: #0b0503;
+      touch-action: manipulation;
     }
+    .font-rye { font-family: 'Rye', cursive; }
+    .table-felt {
+      background: radial-gradient(ellipse at center, #931a1a 0%, #4a0808 68%, #1a0202 100%);
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9), 0 10px 40px rgba(0, 0, 0, 0.8);
+      border: 14px solid #3d2314;
+    }
+    .gold-glow {
+      box-shadow: 0 0 20px #eab308, inset 0 0 12px #ca8a04;
+    }
+    .gold-spotlight {
+      animation: pulseGlow 1.2s infinite alternate;
+      border: 3px solid #facc15 !important;
+      transform: scale(1.15) translateY(-10px);
+      z-index: 40;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 10px #facc15, 0 0 20px #eab308; }
+      100% { box-shadow: 0 0 25px #fef08a, 0 0 45px #eab308; }
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #78350f; border-radius: 4px; }
   </style>
 </head>
-<body class="flex items-center justify-center h-screen w-screen">
+<body class="flex items-center justify-center h-screen w-screen overflow-hidden text-amber-50">
 
-  <!-- เชื่อมต่อไปยัง Server -->
+  <!-- ================= 1. หน้าต่าง LOGIN & REGISTER ================= -->
+  <div id="screenAuth" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+    <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-6 shadow-2xl">
+      <div class="text-center mb-6">
+        <h1 class="text-4xl text-amber-400 font-rye tracking-wider drop-shadow">FiwTeeTak</h1>
+        <p class="text-stone-400 text-sm mt-1">คาวบอยการ์ดเกมออนไลน์ สไตล์ Saloon</p>
+      </div>
+
+      <div class="flex border-b border-stone-700 mb-6">
+        <button id="tabBtnLogin" class="flex-1 py-2 text-center text-amber-400 font-bold border-b-2 border-amber-500">เข้าสู่ระบบ</button>
+        <button id="tabBtnRegister" class="flex-1 py-2 text-center text-stone-400 font-bold hover:text-stone-200">สมัครสมาชิก</button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs text-amber-200 mb-1">ชื่อผู้ใช้ (Username)</label>
+          <input type="text" id="authUsername" class="w-full bg-stone-800 border border-stone-600 rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500" placeholder="กรอกชื่อผู้ใช้">
+        </div>
+        <div>
+          <label class="block text-xs text-amber-200 mb-1">รหัสผ่าน (Password)</label>
+          <input type="password" id="authPassword" class="w-full bg-stone-800 border border-stone-600 rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500" placeholder="กรอกรหัสผ่าน">
+        </div>
+
+        <button id="btnAuthSubmit" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-2.5 rounded shadow-lg">
+          เข้าสู่ระบบ
+        </button>
+
+        <p id="txtAuthError" class="text-rose-400 text-xs text-center min-h-[16px]"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. หน้ารวมห้อง (SALOON LOBBY) ================= -->
+  <div id="screenLobby" class="hidden fixed inset-0 z-40 flex flex-col bg-stone-950 p-4 max-w-6xl mx-auto">
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between bg-stone-900 border border-amber-800/80 rounded-xl p-3 px-5 mb-4 shadow-lg gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl text-amber-500 font-rye">FiwTeeTak</span>
+        <div class="text-xs bg-stone-800 border border-stone-700 px-3 py-1 rounded-full text-stone-300">
+          ผู้เล่น: <b id="lblPlayerUsername" class="text-amber-400">-</b>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 bg-stone-800 px-3 py-1.5 rounded-lg border border-amber-600/40">
+          <i class="fa-solid fa-coins text-amber-400 text-lg"></i>
+          <span id="lblPlayerChips" class="font-bold text-amber-300 text-lg">0</span>
+          <span class="text-xs text-stone-400">เหรียญ</span>
+        </div>
+        <button id="btnDailyBonus" class="bg-gradient-to-r from-yellow-500 to-amber-600 hover:scale-105 text-stone-950 font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-gift"></i> รับ 2,000 ฟรี
+        </button>
+        <button id="btnOpenBank" class="bg-stone-800 hover:bg-stone-700 border border-amber-700 px-3 py-1.5 rounded-lg text-xs text-amber-300 font-semibold flex items-center gap-1.5">
+          <i class="fa-solid fa-building-columns"></i> ธนาคาร
+        </button>
+      </div>
+    </header>
+
+    <!-- Content: Rooms & Actions -->
+    <div class="flex-1 bg-stone-900/80 border border-stone-800 rounded-xl p-4 flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-door-open"></i> รายการห้องเล่น Saloon
+        </h2>
+        <button id="btnOpenCreateRoom" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-4 py-2 rounded-lg text-sm shadow flex items-center gap-2 transition">
+          <i class="fa-solid fa-plus"></i> สร้างห้องใหม่
+        </button>
+      </div>
+
+      <!-- ห้องทั้งหมด -->
+      <div id="listRooms" class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pr-1 custom-scrollbar">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 3. หน้าโต๊ะเกม (GAME SALOON TABLE) ================= -->
+  <div id="screenGame" class="hidden relative w-full h-full max-w-[1100px] max-h-[640px] flex flex-col justify-between p-3">
+    <!-- Top HUD Bar -->
+    <div class="flex items-center justify-between bg-stone-900/90 border border-amber-900 rounded-xl px-4 py-2 text-xs">
+      <div class="flex items-center gap-3">
+        <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2.5 py-1 rounded border border-stone-700">
+          <i class="fa-solid fa-arrow-left"></i> ออก
+        </button>
+        <div>
+          <span class="text-amber-400 font-bold" id="hudRoomName">Saloon Room</span>
+          <span class="text-stone-400 text-[11px] ml-2" id="hudRoomCode">#000000</span>
+        </div>
+      </div>
+
+      <!-- Pot กองกลาง -->
+      <div class="flex items-center gap-3 bg-stone-950 border border-amber-500/50 px-4 py-1.5 rounded-full shadow-inner">
+        <span class="text-stone-400 text-[11px]">กองกลาง (POT):</span>
+        <i class="fa-solid fa-coins text-amber-400"></i>
+        <span id="hudPot" class="text-xl font-black text-amber-300 font-rye">0</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-3 py-1 rounded border border-stone-700">
+          <i class="fa-solid fa-scroll"></i> ไพ่ที่ออก
+        </button>
+      </div>
+    </div>
+
+    <!-- The Poker Felt Table -->
+    <div class="relative flex-1 table-felt rounded-[160px] my-2 flex items-center justify-center overflow-hidden">
+      <!-- Saloon Stamp -->
+      <div class="absolute text-center opacity-20 pointer-events-none">
+        <div class="text-6xl font-rye text-amber-200">FiwTeeTak</div>
+        <div class="text-xs uppercase tracking-widest text-amber-100">Classic Saloon Saloon Rules</div>
+      </div>
+
+      <!-- ไพ่กองกลาง & ผลการเล่น (Community Showcase) -->
+      <div class="relative z-20 flex flex-col items-center">
+        <div id="boxShowcase" class="flex items-center gap-6 mb-2 min-h-[90px]">
+          <!-- ไพ่กองกลางใบที่เปิด -->
+          <div class="flex flex-col items-center">
+            <span class="text-[10px] text-stone-300 mb-1">ไพ่กองกลาง</span>
+            <div id="cardCommunity" class="w-14 h-20 bg-stone-800 border-2 border-stone-600 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg">
+              ?
+            </div>
+          </div>
+
+          <div id="showcaseVS" class="hidden text-amber-400 font-black text-lg">VS</div>
+
+          <!-- ไพ่ชนะของผู้เล่นใบที่ใหญ่ที่สุด -->
+          <div id="boxWinningReveal" class="hidden flex flex-col items-center">
+            <span class="text-[10px] text-amber-300 mb-1 font-bold">ไพ่ใบใหญ่สุดที่ชนะ</span>
+            <div id="cardWinningReveal" class="w-14 h-20 bg-white text-stone-900 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl gold-spotlight">
+              -
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner แจ้งผลชนะ/แพ้ & ปุ่มกดเริ่มเกมส์ -->
+        <div id="txtGameStatus" class="text-sm font-bold text-amber-300 min-h-[22px] text-center drop-shadow"></div>
+        <button id="btnStartGameAction" class="hidden mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-6 py-2 rounded-full shadow-lg text-sm transition animate-bounce">
+          <i class="fa-solid fa-play"></i> กดเริ่มเกมส์
+        </button>
+      </div>
+
+      <!-- ที่นั่งผู้เล่นรอบโต๊ะ (ตำแหน่งรอบวงรี) -->
+      <div id="seatsContainer" class="absolute inset-0 pointer-events-none">
+        <!-- Rendered Seats -->
+      </div>
+    </div>
+
+    <!-- Bottom Controls (Action Bar) -->
+    <div id="controlsBar" class="bg-stone-900/95 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- ไพ่บนมือ 4 ใบ -->
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs text-stone-400 mr-1">ไพ่ของคุณ:</span>
+        <div id="myHandCards" class="flex gap-1.5">
+          <!-- 4 Cards -->
+        </div>
+      </div>
+
+      <!-- แผงเดิมพัน & ตัวจับเวลา 20 วิ -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-stone-400">เดิมพัน:</span>
+          <input type="number" id="inputBetNumber" min="10" value="10" class="w-20 bg-stone-950 border border-amber-600/70 rounded px-2 py-1 text-center font-bold text-amber-400">
+        </div>
+
+        <button id="btnBetAction" class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-black px-5 py-2 rounded-lg shadow-md transition text-sm flex items-center gap-2">
+          <i class="fa-solid fa-coins"></i> วางเดิมพัน!
+        </button>
+
+        <!-- ตัวนับเวลาถอยหลัง 20 วินาที -->
+        <div id="boxTimer" class="hidden flex items-center gap-1.5 bg-stone-950 border border-stone-700 px-3 py-1.5 rounded-lg text-amber-400 font-bold text-xs">
+          <i class="fa-solid fa-stopwatch animate-pulse"></i>
+          <span id="lblCountdown">20</span>s
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket Logic -->
   <script>
-    // เชื่อมต่อไปยัง Domain เดียวกันผ่าน WebSocket
     const socket = io();
+    let currentUser = null;
+    let currentRoom = null;
+    let isRegisterMode = false;
+    let turnTimerInterval = null;
 
-    socket.on('connect', () => {
-      console.log('✅ เชื่อมต่อ Saloon Online Server สำเร็จ! Socket ID:', socket.id);
+    // Element References
+    const screenAuth = document.getElementById('screenAuth');
+    const screenLobby = document.getElementById('screenLobby');
+    const screenGame = document.getElementById('screenGame');
+
+    // Tab Switching
+    document.getElementById('tabBtnLogin').onclick = () => {
+      isRegisterMode = false;
+      document.getElementById('tabBtnLogin').className = "flex-1 py-2 text-center text-amber-400 font-bold border-b-2 border-amber-500";
+      document.getElementById('tabBtnRegister').className = "flex-1 py-2 text-center text-stone-400 font-bold hover:text-stone-200";
+      document.getElementById('btnAuthSubmit').innerText = "เข้าสู่ระบบ";
+    };
+    document.getElementById('tabBtnRegister').onclick = () => {
+      isRegisterMode = true;
+      document.getElementById('tabBtnRegister').className = "flex-1 py-2 text-center text-amber-400 font-bold border-b-2 border-amber-500";
+      document.getElementById('tabBtnLogin').className = "flex-1 py-2 text-center text-stone-400 font-bold hover:text-stone-200";
+      document.getElementById('btnAuthSubmit').innerText = "สมัครสมาชิก";
+    };
+
+    // Auth Action
+    document.getElementById('btnAuthSubmit').onclick = () => {
+      const u = document.getElementById('authUsername').value.trim();
+      const p = document.getElementById('authPassword').value.trim();
+      const err = document.getElementById('txtAuthError');
+      err.innerText = '';
+      if (!u || !p) return err.innerText = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+
+      const evt = isRegisterMode ? 'auth:register' : 'auth:login';
+      socket.emit(evt, { username: u, password: p }, (res) => {
+        if (!res.success) {
+          err.innerText = res.msg || 'เข้าสู่ระบบล้มเหลว';
+        } else {
+          currentUser = res.user;
+          screenAuth.classList.add('hidden');
+          screenLobby.classList.remove('hidden');
+          updateLobbyUI();
+        }
+      });
+    };
+
+    function updateLobbyUI() {
+      if (!currentUser) return;
+      document.getElementById('lblPlayerUsername').innerText = currentUser.username;
+      document.getElementById('lblPlayerChips').innerText = currentUser.chips.toLocaleString();
+    }
+
+    // Daily Bonus
+    document.getElementById('btnDailyBonus').onclick = () => {
+      socket.emit('user:claim_daily', {}, (res) => {
+        if (res.success) {
+          currentUser.chips = res.chips;
+          updateLobbyUI();
+          alert('🎉 ได้รับเหรียญฟรี 2,000 เหรียญเรียบร้อยแล้ว!');
+        } else {
+          alert(res.msg || 'ยังไม่ถึงรอบรับเหรียญประจำวัน');
+        }
+      });
+    };
+
+    // Receive Lobby Rooms
+    socket.on('lobby:rooms_update', (rooms) => {
+      const container = document.getElementById('listRooms');
+      if (!container) return;
+      if (rooms.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center text-stone-500 py-10">ยังไม่มีห้องที่เปิดอยู่ กดสร้างห้องเพื่อเริ่มเล่นได้เลย</div>';
+        return;
+      }
+      container.innerHTML = rooms.map(r => `
+        <div class="bg-stone-800/80 border border-stone-700 hover:border-amber-600 rounded-xl p-3 flex justify-between items-center transition">
+          <div>
+            <div class="font-bold text-amber-300 text-sm">${r.name}</div>
+            <div class="text-xs text-stone-400">เลขห้อง: #${r.code} | คน: ${r.players}/${r.maxPlayers}</div>
+            <div class="text-[11px] text-amber-500/90">กองกลาง: ${r.pot.toLocaleString()} เหรียญ</div>
+          </div>
+          <button onclick="joinRoom('${r.code}')" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1.5 rounded text-xs transition">
+            เข้าร่วม
+          </button>
+        </div>
+      `).join('');
     });
 
-    // ตัวอย่างการส่ง Login ไปหา Server จริง
-    function login(username, password) {
-      socket.emit('auth:login', { username, password }, (res) => {
+    // Create Room
+    document.getElementById('btnOpenCreateRoom').onclick = () => {
+      const rName = prompt('ตั้งชื่อห้องของคุณ:', `${currentUser.username}'s Saloon`);
+      if (!rName) return;
+      socket.emit('room:create', { roomName: rName, maxPlayers: 6, mode: 'bot' }, (res) => {
         if (res.success) {
-          alert('เข้าสู่ระบบสำเร็จ! ผู้เล่น: ' + res.user.username);
-        } else {
-          alert('เกิดข้อผิดพลาด: ' + res.msg);
+          enterGameScreen(res.roomCode);
         }
+      });
+    };
+
+    window.joinRoom = function(code) {
+      socket.emit('room:join', { roomCode: code }, (res) => {
+        if (res.success) {
+          enterGameScreen(code);
+        } else {
+          alert(res.msg || 'ไม่สามารถเข้าห้องได้');
+        }
+      });
+    };
+
+    function enterGameScreen(code) {
+      screenLobby.classList.add('hidden');
+      screenGame.classList.remove('hidden');
+    }
+
+    document.getElementById('btnLeaveRoom').onclick = () => {
+      location.reload();
+    };
+
+    // Sync Game State
+    socket.on('game:state_sync', (state) => {
+      currentRoom = state;
+      document.getElementById('hudRoomName').innerText = state.name;
+      document.getElementById('hudRoomCode').innerText = `#${state.code}`;
+      document.getElementById('hudPot').innerText = state.pot.toLocaleString();
+
+      // แสดงไพ่บนมือของผู้เล่นตนเอง
+      const me = state.players.find(p => p.username === currentUser.username);
+      const handBox = document.getElementById('myHandCards');
+      handBox.innerHTML = '';
+      if (me && me.hand) {
+        me.hand.forEach(c => {
+          handBox.innerHTML += `
+            <div class="w-10 h-14 bg-white text-stone-900 border border-stone-300 rounded flex flex-col items-center justify-center font-bold text-xs shadow ${c.color === 'red' ? 'text-rose-600' : 'text-stone-900'}">
+              <span>${c.rank}</span>
+              <span class="text-sm">${c.suit}</span>
+            </div>
+          `;
+        });
+      }
+
+      // แสดงที่นั่งผู้เล่น
+      renderSeats(state.players, state.activeTurnIndex);
+    });
+
+    function renderSeats(players, activeIndex) {
+      const c = document.getElementById('seatsContainer');
+      c.innerHTML = '';
+      const total = players.length;
+      players.forEach((p, idx) => {
+        const isTurn = idx === activeIndex;
+        // จัดตำแหน่งรอบวงรี
+        const angle = (idx / total) * 2 * Math.PI + Math.PI / 2;
+        const rx = 40; // %
+        const ry = 36; // %
+        const left = 50 + rx * Math.cos(angle);
+        const top = 50 + ry * Math.sin(angle);
+
+        c.innerHTML += `
+          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto" style="left: ${left}%; top: ${top}%;">
+            <div class="relative w-12 h-12 rounded-full border-2 ${isTurn ? 'border-amber-400 gold-glow animate-pulse' : 'border-stone-600'} bg-stone-800 flex items-center justify-center text-xl shadow-lg">
+              🤠
+            </div>
+            <div class="bg-stone-900/90 border border-stone-700 px-2 py-0.5 rounded text-[11px] font-bold text-amber-200 mt-1 text-center shadow">
+              <div>${p.username}</div>
+              <div class="text-[10px] text-amber-400 font-normal">${p.chips.toLocaleString()} 🪙</div>
+            </div>
+          </div>
+        `;
       });
     }
 
-    // เมื่อ Server สั่งอัปเดตกระดาน
-    socket.on('game:state_sync', (state) => {
-      console.log('ข้อมูลโต๊ะสดจาก Server:', state);
-      // นำ state.pot, state.players, state.activeTurnIndex ไปเรนเดอร์ลงโต๊ะ
+    // แจ้งเตือนเมื่อต้องกดเริ่มเกมส์
+    socket.on('game:need_start_click', (msg) => {
+      document.getElementById('txtGameStatus').innerText = msg;
+      document.getElementById('btnStartGameAction').classList.remove('hidden');
     });
 
-    // แสดงการนับถอยหลัง 20 วิ
+    document.getElementById('btnStartGameAction').onclick = () => {
+      document.getElementById('btnStartGameAction').classList.add('hidden');
+      socket.emit('game:start_click');
+    };
+
+    // นับถอยหลัง 20 วิ
     socket.on('game:turn_start', ({ activeUsername, timeoutSec }) => {
-      console.log(`ตาของ ${activeUsername} มีเวลา ${timeoutSec} วินาที`);
+      const isMe = activeUsername === currentUser.username;
+      document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `กำลังรอ ${activeUsername} เดิมพัน...`;
+      
+      const timerBox = document.getElementById('boxTimer');
+      const timerLbl = document.getElementById('lblCountdown');
+      timerBox.classList.remove('hidden');
+      
+      let left = timeoutSec;
+      timerLbl.innerText = left;
+      clearInterval(turnTimerInterval);
+      turnTimerInterval = setInterval(() => {
+        left--;
+        timerLbl.innerText = Math.max(0, left);
+        if (left <= 0) {
+          clearInterval(turnTimerInterval);
+          timerBox.classList.add('hidden');
+        }
+      }, 1000);
     });
 
-    // ชนะเดิมพัน ขึ้นกรอบทองใบใหญ่สุด
-    socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount }) => {
-      if (isWin) {
-        console.log(`🏆 ${player} ชนะ! ไพ่ใบใหญ่สุดคือ ${winningCard.rank}${winningCard.suit} ชนะกองกลาง ${communityCard.rank}${communityCard.suit}`);
+    // เดิมพัน
+    document.getElementById('btnBetAction').onclick = () => {
+      const amt = parseInt(document.getElementById('inputBetNumber').value) || 10;
+      socket.emit('game:bet', { amount: amt });
+      clearInterval(turnTimerInterval);
+      document.getElementById('boxTimer').classList.add('hidden');
+    };
+
+    // แสดงผลการประลอง
+    socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount, potNow }) => {
+      document.getElementById('hudPot').innerText = potNow.toLocaleString();
+      
+      // แสดงไพ่กองกลาง
+      const commBox = document.getElementById('cardCommunity');
+      commBox.className = `w-14 h-20 bg-white rounded-lg flex flex-col items-center justify-center font-bold text-lg shadow-xl ${communityCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
+      commBox.innerHTML = `<span>${communityCard.rank}</span><span>${communityCard.suit}</span>`;
+
+      // หากชนะ ให้หงายไพ่ใบใหญ่สุดใบเดียวขึ้นกรอบทอง
+      const winBox = document.getElementById('boxWinningReveal');
+      const winCard = document.getElementById('cardWinningReveal');
+      const vsText = document.getElementById('showcaseVS');
+
+      if (isWin && winningCard) {
+        vsText.classList.remove('hidden');
+        winBox.classList.remove('hidden');
+        winCard.className = `w-14 h-20 bg-white rounded-lg flex flex-col items-center justify-center font-bold text-lg shadow-2xl gold-spotlight ${winningCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
+        winCard.innerHTML = `<span>${winningCard.rank}</span><span>${winningCard.suit}</span>`;
+        document.getElementById('txtGameStatus').innerHTML = `<span class="text-amber-400">🎉 ${player} ชนะเดิมพัน +${betAmount.toLocaleString()} เหรียญ!</span>`;
+      } else {
+        vsText.classList.add('hidden');
+        winBox.classList.add('hidden');
+        document.getElementById('txtGameStatus').innerHTML = `<span class="text-stone-400">${player} แพ้ เสีย ${betAmount.toLocaleString()} เข้ากองกลาง</span>`;
       }
     });
 
-    // เมื่อเกิด Pot Split 80%
-    socket.on('game:pot_split_jackpot', ({ perPlayer, remainingPot }) => {
-      alert(`🎉 กองกลางแตก 80%! ทุกคนได้รับส่วนแบ่งคนละ ${perPlayer} เหรียญ`);
+    // Jackpot กองกลางแตก 80%
+    socket.on('game:pot_split_jackpot', ({ amountDistributed, perPlayer, remainingPot }) => {
+      alert(`💥 JACKPOT แตก! กองกลางถูกปันผล 80% แจกให้ผู้เล่นทุกคนคนละ ${perPlayer.toLocaleString()} เหรียญ!`);
     });
   </script>
 </body>

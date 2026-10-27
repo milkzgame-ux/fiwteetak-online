@@ -40,7 +40,9 @@ function loadUsersDatabase() {
       saveUsersDatabase();
     }
   } catch (err) {
+    console.error('Load DB error, resetting to default:', err);
     USERS = { ...DEFAULT_USERS };
+    saveUsersDatabase();
   }
   if (!USERS["admin"]) {
     USERS["admin"] = { ...DEFAULT_USERS["admin"] };
@@ -376,6 +378,7 @@ io.on('connection', (socket) => {
     } else {
       room.players.push(pObj);
     }
+
     emitRoomState(room);
   });
 
@@ -434,7 +437,6 @@ io.on('connection', (socket) => {
             setTimeout(() => { processPlayerBet(room, player, 10); }, 1500);
           }
 
-          // จับเวลา 3 นาที (180 วิ) ถ้าไม่กลับมาเตะออก
           const tId = setTimeout(() => {
             handlePlayerLeave(socket, room.code, currentAuthUser);
             delete DISCONNECTED_PLAYERS[currentAuthUser];
@@ -556,21 +558,15 @@ function startNewGameRound(room) {
 
   room.activeTurnIndex = room.dealerIndex;
   
-  // ซิงค์สถานะ (ส่งข้อมูลไพ่ แต่บอก client ว่ายังไม่แจกไพ่)
-  emitRoomState(room);
+  io.to(room.code).emit('game:dealing_cards');
 
-  // คำนวณเวลาแจกไพ่: 4 ใบ x (จำนวนผู้เล่น * 120ms) + บิน 600ms
-  const activeCount = room.players.filter(p => !p.isWaiting).length;
-  const dealTime = (activeCount * 4 * 120) + 600;
-
-  io.to(room.code).emit('game:dealing_cards', { delayPerCard: 120 });
-
-  // รอจนกว่าไพ่ทั้งหมดจะแจกเสร็จ ค่อยเปิดให้เริ่มเล่น
   setTimeout(() => {
     room.cardsDealt = true;
     emitRoomState(room);
     startTurnTimer(room);
-  }, dealTime);
+  }, 2200);
+
+  emitRoomState(room);
 }
 
 function startTurnTimer(room) {
@@ -580,7 +576,6 @@ function startTurnTimer(room) {
 
   const currentDisplayName = currentP.displayName || currentP.username;
   
-  // ให้เวลา 30 วินาที
   io.to(room.code).emit('game:turn_start', {
     activeUsername: currentP.username,
     activeDisplayName: currentDisplayName,
@@ -598,7 +593,7 @@ function startTurnTimer(room) {
 
   room.timer = setTimeout(() => {
     processPlayerBet(room, currentP, 10);
-  }, 30000); // 30 วิหมอบอัตโนมัติ
+  }, 30000);
 }
 
 function processPlayerBet(room, player, amount) {
@@ -667,7 +662,6 @@ function checkNextTurnOrRoundEnd(room) {
     room.isGameRunning = false;
     room.cardsDealt = false;
 
-    // เตะคนหลุด
     const offlinePlayers = room.players.filter(p => p.isOffline);
     offlinePlayers.forEach(p => {
       handlePlayerLeave(null, room.code, p.username);
@@ -677,7 +671,6 @@ function checkNextTurnOrRoundEnd(room) {
       }
     });
 
-    // ดึงคนที่รอเข้ามาเล่น
     while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
       const waitingP = room.waitingQueue.shift();
       waitingP.isWaiting = false;
@@ -818,5 +811,5 @@ function emitRoomState(room) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server online on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

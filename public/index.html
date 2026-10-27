@@ -60,7 +60,7 @@
 
     @keyframes dealFly {
       0% {
-        top: 50%;
+        top: 45%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.2) rotate(180deg);
         opacity: 0;
@@ -208,7 +208,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL แต่งตัวคาวบอย & ตั้งชื่อเล่น (WARDROBE & NICKNAME) ================= -->
+  <!-- ================= MODAL แต่งตัวคาวบอย & ตั้งชื่อเล่น ================= -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -223,7 +223,6 @@
       </div>
 
       <div class="space-y-2.5 text-xs overflow-y-auto pr-1 custom-scrollbar">
-        <!-- ช่องตั้งชื่อเล่น (Nickname / Display Name) -->
         <div>
           <label class="block text-amber-300 font-bold mb-1">
             <i class="fa-solid fa-id-badge"></i> ชื่อเล่นที่แสดงในเกม (Display Name)
@@ -319,7 +318,7 @@
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">ผู้เล่นสูงสุด</label>
-          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white">
+          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
             <option value="2">2 คน</option>
             <option value="4">4 คน</option>
             <option value="6" selected>6 คน</option>
@@ -328,7 +327,7 @@
         </div>
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">รูปแบบห้อง</label>
-          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white">
+          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
             <option value="bot">เติมบอทอัตโนมัติ (เริ่มได้ทันที)</option>
             <option value="human">เล่นกับคนเท่านั้น (รอคนครบ 2 คน)</option>
           </select>
@@ -426,12 +425,14 @@
           <div class="text-[10px] uppercase font-bold tracking-widest text-amber-900">Saloon Poker Table</div>
         </div>
 
+        <!-- สำรับไพ่กลางโต๊ะสำหรับสร้างแอนิเมชันแจกไพ่ -->
         <div id="deckCenterPile" class="absolute top-[28%] z-15 flex flex-col items-center pointer-events-none">
           <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl relative">
             <div class="absolute inset-0 flex items-center justify-center text-blue-200 opacity-60 text-xs font-bold">♠</div>
           </div>
         </div>
 
+        <!-- ชิป POT กลางโต๊ะ -->
         <div class="absolute top-[37%] flex flex-col items-center pointer-events-none z-10">
           <div class="flex items-center gap-1.5 bg-black/50 border border-amber-500/50 px-3 py-0.5 rounded-full shadow-lg">
             <i class="fa-solid fa-circle-dot text-amber-400 text-[10px] animate-spin"></i>
@@ -439,7 +440,7 @@
           </div>
         </div>
 
-        <!-- ไพ่กองกลาง & ไพ่ชนะ -->
+        <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
         <div class="relative z-30 flex flex-col items-center mt-6">
           <div id="boxShowcase" class="flex items-center gap-5 mb-1 min-h-[85px]">
             <div class="flex flex-col items-center">
@@ -462,14 +463,17 @@
         <!-- ที่นั่งตัวละครรอบโต๊ะ -->
         <div id="seatsContainer" class="absolute inset-0 pointer-events-none"></div>
 
+        <!-- เลเยอร์อนิเมชันแจกไพ่ -->
         <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-35"></div>
 
+        <!-- ปุ่มเปิด/ปิด แชทห้อง -->
         <div class="absolute bottom-3 left-4 z-40 pointer-events-auto">
           <button id="btnToggleRoomChat" class="bg-stone-950/80 hover:bg-stone-900 border border-amber-600/60 text-amber-400 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition">
             <i class="fa-solid fa-comment-dots text-sm"></i>
           </button>
         </div>
 
+        <!-- กล่องแชทห้อง Pop-up -->
         <div id="boxRoomChatPopup" class="hidden absolute bottom-14 left-4 z-50 w-64 bg-stone-950/95 border border-amber-800 rounded-xl p-2.5 shadow-2xl flex flex-col pointer-events-auto text-xs">
           <div class="flex justify-between items-center border-b border-stone-800 pb-1.5 mb-2">
             <span class="font-bold text-amber-400"><i class="fa-solid fa-comments"></i> แชทในโต๊ะ</span>
@@ -526,6 +530,16 @@
     const modalWardrobe = document.getElementById('modalWardrobe');
     const modalHistory = document.getElementById('modalHistory');
     const btnAdminPanel = document.getElementById('btnAdminPanel');
+
+    // ฟังก์ชันรีเซ็ตไพ่กลางโต๊ะกลับเป็นคว่ำและซ่อนไพ่ที่ชนะ
+    function resetCommunityShowcase() {
+      const commBox = document.getElementById('cardCommunity');
+      commBox.className = "w-[52px] h-[72px] bg-stone-900 border-2 border-stone-700 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl text-stone-400";
+      commBox.innerHTML = "?";
+
+      document.getElementById('showcaseVS').classList.add('hidden');
+      document.getElementById('boxWinningReveal').classList.add('hidden');
+    }
 
     // === TOP-DOWN COWBOY SVG ENGINE (7 หมวก + แขนเท้าขอบโต๊ะ)[cite: 13] ===
     function generateTopDownCowboySVG(avatar = {}, isTurn = false, isMe = false) {
@@ -940,6 +954,7 @@
       screenLobby.classList.add('hidden');
       screenGame.classList.remove('hidden');
       document.getElementById('listRoomMessages').innerHTML = '';
+      resetCommunityShowcase();
     }
 
     document.getElementById('btnLogoutMain').onclick = () => {
@@ -992,28 +1007,37 @@
     });
 
     socket.on('game:dealing_cards', () => {
+      resetCommunityShowcase(); // รีเซ็ตไพ่กลางโต๊ะกลับเป็น ? ทันทีเมื่อเริ่มแจกไพ่รอบใหม่
+
       const layer = document.getElementById('dealAnimationLayer');
       layer.innerHTML = '';
 
       if (!currentRoomState || !currentRoomState.players) return;
       const total = currentRoomState.players.length;
 
+      let myIdx = currentRoomState.players.findIndex(p => p.username === currentUser.username);
+      if (myIdx === -1) myIdx = 0;
+
       currentRoomState.players.forEach((p, idx) => {
-        const angle = (idx / total) * 2 * Math.PI + Math.PI / 2;
-        const targetLeft = 50 + 31 * Math.cos(angle);
-        const targetTop = 50 + 26 * Math.sin(angle);
+        const relIdx = (idx - myIdx + total) % total;
+        const angle = (relIdx / total) * 2 * Math.PI + Math.PI / 2;
+
+        const rx = 39;
+        const ry = 34;
+        const targetLeft = 50 + rx * Math.cos(angle) + 2.5;
+        const targetTop = 50 + ry * Math.sin(angle) - 1.5;
 
         const card = document.createElement('div');
         card.className = 'absolute w-5 h-7 bg-blue-800 border border-blue-400 rounded-sm shadow-xl animate-deal-card';
         card.style.left = `${targetLeft}%`;
         card.style.top = `${targetTop}%`;
-        card.style.animationDelay = `${idx * 0.12}s`;
+        card.style.animationDelay = `${idx * 0.1}s`;
         layer.appendChild(card);
       });
 
       setTimeout(() => {
         layer.innerHTML = '';
-      }, 1600);
+      }, 1500);
     });
 
     function checkPlayerTurnLock(state) {
@@ -1033,7 +1057,7 @@
       input.disabled = !enabled;
     }
 
-    // เรนเดอร์ตัวละครพร้อมชื่อเล่น[cite: 13]
+    // เรนเดอร์ตัวละครพร้อมจัดวางตำแหน่งไพ่และชิปตามแบบ Governor of Poker 3 เป๊ะๆ (รูปที่ 2)
     function renderTopDownSeats(players, activeIndex) {
       const c = document.getElementById('seatsContainer');
       c.innerHTML = '';
@@ -1050,19 +1074,29 @@
         const relIdx = (idx - myIdx + total) % total;
         const angle = (relIdx / total) * 2 * Math.PI + Math.PI / 2;
 
-        const rx = 41;
-        const ry = 36;
-        const left = 50 + rx * Math.cos(angle);
-        const top = 50 + ry * Math.sin(angle);
+        // รัศมีวางตัวละครชิดขอบโต๊ะ
+        const rx = 40;
+        const ry = 35;
+        const charLeft = 50 + rx * Math.cos(angle);
+        const charTop = 50 + ry * Math.sin(angle);
 
-        const cardLeft = 50 + (rx - 14) * Math.cos(angle);
-        const cardTop = 50 + (ry - 12) * Math.sin(angle);
+        // คำนวณเวกเตอร์ตั้งฉากเพื่อจัดวางไพ่ไปทางข้างลำตัว (ไม่ทับตัวละคร และไม่พุ่งเข้าหากลางโต๊ะ)
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        const perpX = -sinA;
+        const perpY = cosA;
 
-        const chipLeft = 50 + (rx - 21) * Math.cos(angle);
-        const chipTop = 50 + (ry - 18) * Math.sin(angle);
+        // วางไพ่คว่ำ 2 ใบเฉียงข้างลำตัว (เหมือนในรูปที่ 2)
+        const cardLeft = charLeft - cosA * 4.5 + perpX * 5.0;
+        const cardTop = charTop - sinA * 4.5 + perpY * 5.0;
+
+        // วางกองชิปเดิมพันไว้ข้างลำตัวอีกฝั่ง
+        const chipLeft = charLeft - cosA * 5.5 - perpX * 4.5;
+        const chipTop = charTop - sinA * 5.5 - perpY * 4.5;
 
         c.innerHTML += `
-          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto z-20" style="left: ${left}%; top: ${top}%;">
+          <!-- ตัวละคร Top-Down -->
+          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto z-20" style="left: ${charLeft}%; top: ${charTop}%;">
             <div id="bubble_${displayName}" class="hidden chat-bubble bg-amber-400 text-stone-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-lg border border-amber-600 mb-1 z-30 whitespace-nowrap"></div>
 
             ${generateTopDownCowboySVG(p.avatar, isTurn, isMe)}
@@ -1073,13 +1107,15 @@
             </div>
           </div>
 
-          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-1 z-10 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
+          <!-- ไพ่คว่ำ 2 ใบประจำตัววางเฉียงข้างลำตัวตามรูปตัวอย่าง -->
+          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-0.5 z-15 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
             <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform -rotate-12"></div>
             <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform rotate-6"></div>
           </div>
 
+          <!-- กองชิปเดิมพันวางข้างลำตัว -->
           ${p.lastBet > 0 ? `
-            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 chip-stack flex items-center gap-1 bg-black/75 border border-amber-500/80 px-2 py-0.5 rounded-full z-15" style="left: ${chipLeft}%; top: ${chipTop}%;">
+            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 chip-stack flex items-center gap-1 bg-black/75 border border-amber-500/80 px-2 py-0.5 rounded-full z-15 pointer-events-none" style="left: ${chipLeft}%; top: ${chipTop}%;">
               <i class="fa-solid fa-coins text-amber-400 text-[10px]"></i>
               <span class="text-[10px] font-black text-amber-300 font-rye">${p.lastBet.toLocaleString()}</span>
             </div>
@@ -1090,6 +1126,7 @@
 
     socket.on('game:need_start_click', (msg) => {
       document.getElementById('txtGameStatus').innerText = msg;
+      resetCommunityShowcase(); // ล้างไพ่เมื่อจบเกมหรือรอเริ่มรอบใหม่
       
       const playerCount = currentRoomState && currentRoomState.players ? currentRoomState.players.length : 0;
       if (playerCount >= 2) {
@@ -1110,6 +1147,8 @@
       const targetName = activeDisplayName || activeUsername;
       document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `รอ ${targetName} เดิมพัน...`;
       
+      resetCommunityShowcase(); // รีเซ็ตไพ่กลางโต๊ะกลับเป็นคว่ำเสมอเมื่อขึ้นตาของผู้เล่นคนใหม่
+
       setBettingControlsEnabled(isMe);
 
       const timerBox = document.getElementById('boxTimer');
@@ -1137,6 +1176,7 @@
       setBettingControlsEnabled(false);
     };
 
+    // เปิดหงายไพ่กลางโต๊ะและไพ่ชนะเฉพาะเมื่อเดิมพันแล้ว
     socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount, potNow }) => {
       document.getElementById('hudPot').innerText = potNow.toLocaleString();
       document.getElementById('lblCenterPotText').innerText = potNow.toLocaleString();

@@ -92,7 +92,6 @@ io.on('connection', (socket) => {
   let currentAuthUser = null;
   let currentRoomId = null;
 
-  // กู้คืนฐานข้อมูลจาก Client (แก้ปัญหา Render ลบไฟล์ตอนอัปเดต)
   socket.on('db:sync_restore', ({ backupData }) => {
     if (backupData && typeof backupData === 'object') {
       let updated = false;
@@ -402,7 +401,7 @@ io.on('connection', (socket) => {
   socket.on('game:bet', ({ amount }) => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
-    if (!room.isGameRunning) return;
+    if (!room.isGameRunning || !room.cardsDealt) return;
 
     const player = room.players[room.activeTurnIndex];
     if (!player || player.username !== currentAuthUser) {
@@ -430,15 +429,16 @@ io.on('connection', (socket) => {
           player.isOffline = true;
           player.isBotTemporary = true;
 
-          if (room.isGameRunning && room.players[room.activeTurnIndex] && room.players[room.activeTurnIndex].username === currentAuthUser) {
+          if (room.isGameRunning && room.cardsDealt && room.players[room.activeTurnIndex] && room.players[room.activeTurnIndex].username === currentAuthUser) {
             clearTimeout(room.timer);
             setTimeout(() => { processPlayerBet(room, player, 10); }, 1500);
           }
 
+          // จับเวลา 3 นาที (180 วิ) ถ้าไม่กลับมาเตะออก
           const tId = setTimeout(() => {
             handlePlayerLeave(socket, room.code, currentAuthUser);
             delete DISCONNECTED_PLAYERS[currentAuthUser];
-          }, 180000); // 3 นาที
+          }, 180000);
 
           DISCONNECTED_PLAYERS[currentAuthUser] = {
             roomCode: room.code,
@@ -556,16 +556,21 @@ function startNewGameRound(room) {
 
   room.activeTurnIndex = room.dealerIndex;
   
-  io.to(room.code).emit('game:dealing_cards');
+  // ซิงค์สถานะ (ส่งข้อมูลไพ่ แต่บอก client ว่ายังไม่แจกไพ่)
+  emitRoomState(room);
 
-  // รออนิเมชันบินเสร็จ (1.5 วินาที)
+  // คำนวณเวลาแจกไพ่: 4 ใบ x (จำนวนผู้เล่น * 120ms) + บิน 600ms
+  const activeCount = room.players.filter(p => !p.isWaiting).length;
+  const dealTime = (activeCount * 4 * 120) + 600;
+
+  io.to(room.code).emit('game:dealing_cards', { delayPerCard: 120 });
+
+  // รอจนกว่าไพ่ทั้งหมดจะแจกเสร็จ ค่อยเปิดให้เริ่มเล่น
   setTimeout(() => {
     room.cardsDealt = true;
     emitRoomState(room);
     startTurnTimer(room);
-  }, 1500);
-
-  emitRoomState(room);
+  }, dealTime);
 }
 
 function startTurnTimer(room) {
@@ -575,7 +580,7 @@ function startTurnTimer(room) {
 
   const currentDisplayName = currentP.displayName || currentP.username;
   
-  // ตั้งเวลาเทิร์น 30 วินาที
+  // ให้เวลา 30 วินาที
   io.to(room.code).emit('game:turn_start', {
     activeUsername: currentP.username,
     activeDisplayName: currentDisplayName,
@@ -591,10 +596,9 @@ function startTurnTimer(room) {
     return;
   }
 
-  // 30 วินาทีบังคับหมอบ
   room.timer = setTimeout(() => {
     processPlayerBet(room, currentP, 10);
-  }, 30000);
+  }, 30000); // 30 วิหมอบอัตโนมัติ
 }
 
 function processPlayerBet(room, player, amount) {
@@ -814,5 +818,5 @@ function emitRoomState(room) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server online on port ${PORT}`);
 });

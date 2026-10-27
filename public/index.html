@@ -18,16 +18,17 @@
     }
     .font-rye { font-family: 'Rye', cursive; }
     
+    /* โต๊ะคาสิโนสัดส่วนพอดี ไม่ครอบตัวละคร */
     .poker-saloon-table {
       background: radial-gradient(ellipse at center, #ea580c 0%, #c2410c 60%, #7c2d12 100%);
-      border: 18px solid #3e2213;
-      border-radius: 220px;
-      box-shadow: inset 0 0 70px rgba(0,0,0,0.85), 0 12px 45px rgba(0,0,0,0.95);
+      border: 14px solid #3e2213;
+      border-radius: 170px;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.85), 0 10px 40px rgba(0,0,0,0.95);
       position: relative;
     }
     .table-wood-rim {
-      border: 6px solid #1c0e07;
-      border-radius: 226px;
+      border: 5px solid #1c0e07;
+      border-radius: 176px;
     }
     .wood-floor-bg {
       background: repeating-linear-gradient(
@@ -39,7 +40,7 @@
       );
     }
     .gold-glow {
-      box-shadow: 0 0 20px #facc15, inset 0 0 10px #eab308;
+      box-shadow: 0 0 18px #facc15, inset 0 0 10px #eab308;
     }
     .gold-spotlight {
       animation: pulseSpotlight 1.2s infinite alternate;
@@ -58,9 +59,10 @@
       filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6));
     }
 
+    /* แอนิเมชันแจกไพ่พุ่งออกจากสำรับไปจุดข้างตัวละคร */
     @keyframes dealFly {
       0% {
-        top: 45%;
+        top: 38%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.2) rotate(180deg);
         opacity: 0;
@@ -72,7 +74,7 @@
       }
     }
     .animate-deal-card {
-      animation: dealFly 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation: dealFly 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
 
     .chat-bubble {
@@ -86,7 +88,6 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #78350f; border-radius: 4px; }
 
-    /* ปรับแต่งสไลเดอร์เดิมพันสไตล์ Poker */
     input[type=range] {
       -webkit-appearance: none;
       background: #441f11;
@@ -117,6 +118,19 @@
     </div>
     <h3 class="text-xl font-bold text-amber-400 font-rye mb-1">กรุณาหมุนจอเป็นแนวนอน</h3>
     <p class="text-sm text-stone-400 max-w-xs">เกมคาวบอย FiwTeeTak ถูกออกแบบมาให้เล่นในมุมมองแนวนอนเพื่อประสบการณ์ที่สมบูรณ์แบบ</p>
+  </div>
+
+  <!-- ================= MODAL ถามการกลับเข้าห้องเดิม (RECONNECT PROMPT) ================= -->
+  <div id="modalReconnect" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4">
+    <div class="w-full max-w-sm bg-stone-900 border-2 border-amber-500 rounded-2xl p-5 shadow-2xl text-center space-y-3">
+      <div class="text-amber-400 text-3xl"><i class="fa-solid fa-rotate animate-spin"></i></div>
+      <h3 class="text-base font-bold text-amber-300">พบห้องที่กำลังเล่นค้างอยู่!</h3>
+      <p class="text-xs text-stone-300">คุณมีเกมที่กำลังเล่นค้างอยู่ในห้อง <b id="lblReconnectRoomName" class="text-amber-400">-</b> ต้องการกลับเข้าสู่เกมเดิมหรือไม่?</p>
+      <div class="flex gap-2 pt-2">
+        <button id="btnReconnectReject" class="flex-1 py-2 rounded bg-stone-800 hover:bg-stone-700 text-stone-400 text-xs font-bold">ออกจากห้อง</button>
+        <button id="btnReconnectAccept" class="flex-1 py-2 rounded bg-amber-600 hover:bg-amber-500 text-stone-950 text-xs font-bold">กลับเข้าห้อง</button>
+      </div>
+    </div>
   </div>
 
   <!-- ================= 1. หน้า LOGIN & REGISTER ================= -->
@@ -227,7 +241,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL แต่งตัวคาวบอย & ตั้งชื่อเล่น ================= -->
+  <!-- ================= MODAL แต่งตัว & ชื่อ ================= -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -299,7 +313,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL กติกาการเล่น & เงื่อนไขชนะเกม (RULES) ================= -->
+  <!-- ================= MODAL กติกา ================= -->
   <div id="modalRules" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-lg bg-stone-900 border-2 border-amber-500 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -336,13 +350,6 @@
           </h4>
           <p>• หากจบเทิร์นครบรอบแล้ว กองกลางมียอดสะสมมหาศาลตั้งแต่ <b>(จำนวนผู้เล่น x 400 เหรียญ)</b> ขึ้นไป</p>
           <p>• กองกลางจะแตกทันที! โดยระบบจะ <b>ปันผล 80% ของ POT</b> แจกเฉลี่ยคืนให้ผู้เล่นทุกคนบนโต๊ะ</p>
-        </div>
-
-        <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
-          <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5">
-            <i class="fa-solid fa-user-clock"></i> การเข้าร่วมกลางเกม
-          </h4>
-          <p>• ผู้เล่นที่นั่งลงเล่นระหว่างเกมกำลังดำเนินอยู่ จะติดสถานะ <b>"ตัวจาง (รอเล่น)"</b> ไม่สามารถเดิมพันหรือรับปันผลได้ จนกว่ากองกลางจะหมดเหลือ 0 เพื่อความยุติธรรมของผู้เล่นเดิม</p>
         </div>
       </div>
     </div>
@@ -386,7 +393,7 @@
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">ผู้เล่นสูงสุด</label>
-          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white">
+          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
             <option value="2">2 คน</option>
             <option value="4">4 คน</option>
             <option value="6" selected>6 คน</option>
@@ -395,7 +402,7 @@
         </div>
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">รูปแบบห้อง</label>
-          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white">
+          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
             <option value="bot">เติมบอทอัตโนมัติ (เริ่มได้ทันที)</option>
             <option value="human">เล่นกับคนเท่านั้น (รอคนครบ 2 คน)</option>
           </select>
@@ -454,8 +461,8 @@
     </div>
   </div>
 
-  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE) ================= -->
-  <div id="screenGame" class="hidden relative w-full h-full max-w-[1140px] max-h-[680px] flex flex-col justify-between p-2">
+  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE - FITTED COMPACT) ================= -->
+  <div id="screenGame" class="hidden relative w-full h-full max-w-[1100px] max-h-[660px] flex flex-col justify-between p-2">
     <!-- Top HUD Bar -->
     <div class="flex items-center justify-between bg-stone-950/80 backdrop-blur border border-amber-900/80 rounded-xl px-3 py-1 text-xs shadow-lg z-40">
       <div class="flex items-center gap-2">
@@ -487,86 +494,89 @@
       </div>
     </div>
 
-    <!-- Table Felt -->
-    <div class="table-wood-rim relative flex-1 my-1 flex items-center justify-center">
-      <div class="poker-saloon-table w-full h-full flex items-center justify-center overflow-hidden">
-        
-        <div class="absolute text-center opacity-15 pointer-events-none">
-          <div class="text-6xl font-rye text-amber-950">FiwTeeTak</div>
-          <div class="text-[10px] uppercase font-bold tracking-widest text-amber-900">Saloon Poker Table</div>
-        </div>
-
-        <div id="deckCenterPile" class="absolute top-[28%] z-15 flex flex-col items-center pointer-events-none">
-          <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl relative">
-            <div class="absolute inset-0 flex items-center justify-center text-blue-200 opacity-60 text-xs font-bold">♠</div>
+    <!-- Table Felt (โต๊ะสัดส่วนพอดี 78% ไม่ครอบตัวละคร) -->
+    <div class="relative flex-1 my-1 flex items-center justify-center overflow-hidden">
+      <!-- โต๊ะไม้และสักหลาดที่ปรับสเกลพอดีตัวละคร -->
+      <div class="table-wood-rim w-[78%] h-[74%] flex items-center justify-center">
+        <div class="poker-saloon-table w-full h-full flex items-center justify-center">
+          
+          <div class="absolute text-center opacity-15 pointer-events-none">
+            <div class="text-5xl font-rye text-amber-950">FiwTeeTak</div>
+            <div class="text-[9px] uppercase font-bold tracking-widest text-amber-900">Saloon Poker Table</div>
           </div>
-        </div>
 
-        <div class="absolute top-[37%] flex flex-col items-center pointer-events-none z-10">
-          <div class="flex items-center gap-1.5 bg-black/50 border border-amber-500/50 px-3 py-0.5 rounded-full shadow-lg">
-            <i class="fa-solid fa-circle-dot text-amber-400 text-[10px] animate-spin"></i>
-            <span id="lblCenterPotText" class="text-xs font-black text-amber-300 font-rye">0</span>
-          </div>
-        </div>
-
-        <!-- ไพ่กองกลาง & ไพ่ชนะ -->
-        <div class="relative z-30 flex flex-col items-center mt-6">
-          <div id="boxShowcase" class="flex items-center gap-5 mb-1 min-h-[85px]">
-            <div class="flex flex-col items-center">
-              <span class="text-[10px] text-amber-100 font-bold mb-0.5 drop-shadow">ไพ่กองกลาง</span>
-              <div id="cardCommunity" class="w-[52px] h-[72px] bg-stone-900 border-2 border-stone-700 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl text-stone-400">?</div>
-            </div>
-            <div id="showcaseVS" class="hidden text-amber-300 font-black text-base drop-shadow-lg">VS</div>
-            <div id="boxWinningReveal" class="hidden flex flex-col items-center">
-              <span class="text-[10px] text-yellow-300 mb-0.5 font-bold drop-shadow">ไพ่ใบใหญ่สุดที่ชนะ</span>
-              <div id="cardWinningReveal" class="w-[52px] h-[72px] bg-white text-stone-900 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl gold-spotlight">-</div>
+          <!-- สำรับไพ่กลางโต๊ะสำหรับสร้างแอนิเมชันแจกไพ่ -->
+          <div id="deckCenterPile" class="absolute top-[28%] z-15 flex flex-col items-center pointer-events-none">
+            <div class="w-9 h-13 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl relative">
+              <div class="absolute inset-0 flex items-center justify-center text-blue-200 opacity-60 text-xs font-bold">♠</div>
             </div>
           </div>
 
-          <div id="txtGameStatus" class="text-xs font-bold text-amber-100 min-h-[18px] text-center drop-shadow px-3 py-0.5 bg-black/40 rounded-full"></div>
-          <button id="btnStartGameAction" class="hidden mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-7 py-2 rounded-full text-xs animate-bounce shadow-2xl border-2 border-green-300 transition">
-            <i class="fa-solid fa-play"></i> กดเริ่มเกมส์
-          </button>
-        </div>
-
-        <!-- ที่นั่งตัวละครรอบโต๊ะ -->
-        <div id="seatsContainer" class="absolute inset-0 pointer-events-none"></div>
-
-        <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-35"></div>
-
-        <!-- ปุ่มเปิดแชทห้อง -->
-        <div class="absolute bottom-3 left-4 z-40 pointer-events-auto">
-          <button id="btnToggleRoomChat" class="bg-stone-950/80 hover:bg-stone-900 border border-amber-600/60 text-amber-400 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition">
-            <i class="fa-solid fa-comment-dots text-sm"></i>
-          </button>
-        </div>
-
-        <!-- กล่องแชทห้อง -->
-        <div id="boxRoomChatPopup" class="hidden absolute bottom-14 left-4 z-50 w-64 bg-stone-950/95 border border-amber-800 rounded-xl p-2.5 shadow-2xl flex flex-col pointer-events-auto text-xs">
-          <div class="flex justify-between items-center border-b border-stone-800 pb-1.5 mb-2">
-            <span class="font-bold text-amber-400"><i class="fa-solid fa-comments"></i> แชทในโต๊ะ</span>
-            <button id="btnCloseRoomChat" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+          <!-- ชิป POT กลางโต๊ะ -->
+          <div class="absolute top-[40%] flex flex-col items-center pointer-events-none z-10">
+            <div class="flex items-center gap-1.5 bg-black/50 border border-amber-500/50 px-3 py-0.5 rounded-full shadow-lg">
+              <i class="fa-solid fa-circle-dot text-amber-400 text-[10px] animate-spin"></i>
+              <span id="lblCenterPotText" class="text-xs font-black text-amber-300 font-rye">0</span>
+            </div>
           </div>
-          <div id="listRoomMessages" class="h-28 overflow-y-auto space-y-1 pr-1 custom-scrollbar"></div>
-          <div class="flex gap-1 mt-2 pt-1.5 border-t border-stone-800">
-            <input type="text" id="inputRoomChat" maxlength="50" class="flex-1 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-white text-xs focus:outline-none" placeholder="พิมพ์ข้อความ...">
-            <button id="btnSendRoomChat" class="bg-amber-600 text-stone-950 px-2.5 py-1 rounded font-bold text-xs">ส่ง</button>
+
+          <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
+          <div class="relative z-30 flex flex-col items-center mt-7">
+            <div id="boxShowcase" class="flex items-center gap-5 mb-1 min-h-[85px]">
+              <div class="flex flex-col items-center">
+                <span class="text-[10px] text-amber-100 font-bold mb-0.5 drop-shadow">ไพ่กองกลาง</span>
+                <div id="cardCommunity" class="w-[52px] h-[72px] bg-stone-900 border-2 border-stone-700 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl text-stone-400">?</div>
+              </div>
+              <div id="showcaseVS" class="hidden text-amber-300 font-black text-base drop-shadow-lg">VS</div>
+              <div id="boxWinningReveal" class="hidden flex flex-col items-center">
+                <span class="text-[10px] text-yellow-300 mb-0.5 font-bold drop-shadow">ไพ่ใบใหญ่สุดที่ชนะ</span>
+                <div id="cardWinningReveal" class="w-[52px] h-[72px] bg-white text-stone-900 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl gold-spotlight">-</div>
+              </div>
+            </div>
+
+            <div id="txtGameStatus" class="text-xs font-bold text-amber-100 min-h-[18px] text-center drop-shadow px-3 py-0.5 bg-black/40 rounded-full"></div>
+            <button id="btnStartGameAction" class="hidden mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-7 py-2 rounded-full text-xs animate-bounce shadow-2xl border-2 border-green-300 transition">
+              <i class="fa-solid fa-play"></i> กดเริ่มเกมส์
+            </button>
           </div>
+        </div>
+      </div>
+
+      <!-- เลเยอร์ที่นั่งตัวละครรอบโต๊ะ (อยู่นอกขอบโต๊ะพอดี) -->
+      <div id="seatsContainer" class="absolute inset-0 pointer-events-none"></div>
+
+      <!-- เลเยอร์อนิเมชันแจกไพ่ -->
+      <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-35"></div>
+
+      <!-- ปุ่มเปิดแชทห้อง -->
+      <div class="absolute bottom-2 left-3 z-40 pointer-events-auto">
+        <button id="btnToggleRoomChat" class="bg-stone-950/80 hover:bg-stone-900 border border-amber-600/60 text-amber-400 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition">
+          <i class="fa-solid fa-comment-dots text-sm"></i>
+        </button>
+      </div>
+
+      <!-- กล่องแชทห้อง -->
+      <div id="boxRoomChatPopup" class="hidden absolute bottom-12 left-3 z-50 w-64 bg-stone-950/95 border border-amber-800 rounded-xl p-2.5 shadow-2xl flex flex-col pointer-events-auto text-xs">
+        <div class="flex justify-between items-center border-b border-stone-800 pb-1.5 mb-2">
+          <span class="font-bold text-amber-400"><i class="fa-solid fa-comments"></i> แชทในโต๊ะ</span>
+          <button id="btnCloseRoomChat" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="listRoomMessages" class="h-28 overflow-y-auto space-y-1 pr-1 custom-scrollbar"></div>
+        <div class="flex gap-1 mt-2 pt-1.5 border-t border-stone-800">
+          <input type="text" id="inputRoomChat" maxlength="50" class="flex-1 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-white text-xs focus:outline-none" placeholder="พิมพ์ข้อความ...">
+          <button id="btnSendRoomChat" class="bg-amber-600 text-stone-950 px-2.5 py-1 rounded font-bold text-xs">ส่ง</button>
         </div>
       </div>
     </div>
 
-    <!-- Controls Bottom Bar (แผงเดิมพันสไตล์ Poker มืออาชีพ + ไพ่ตนเองขยายใหญ่) -->
+    <!-- Controls Bottom Bar (แผงเดิมพันสไตล์ Poker Slider + Hero Cards) -->
     <div id="controlsBar" class="bg-stone-950/95 border border-amber-900/80 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xl z-40">
-      <!-- ไพ่ในมือตัวเอง ขนาดใหญ่ชัดเจนสไตล์ Hero Cards -->
       <div class="flex items-center gap-2">
         <span class="text-xs text-amber-300 font-bold mr-0.5">ไพ่ของคุณ:</span>
         <div id="myHandCards" class="flex gap-2"></div>
       </div>
 
-      <!-- แผงเดิมพันแบบ Poker Slider + Input + ทางลัด -->
       <div class="flex flex-col sm:flex-row items-center gap-2.5">
-        <!-- แถบสไลเดอร์และปุ่มทางลัด -->
         <div class="flex flex-col gap-1 items-end">
           <div class="flex items-center gap-2">
             <input type="range" id="sliderBet" min="10" max="1000" value="10" step="10" class="w-32 sm:w-44 accent-amber-400 focus:outline-none disabled:opacity-40">
@@ -580,7 +590,6 @@
           </div>
         </div>
 
-        <!-- ปุ่มกดเดิมพันและเวลา -->
         <div class="flex items-center gap-2">
           <button id="btnBetAction" class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-black px-5 py-2.5 rounded-lg text-xs shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
             <i class="fa-solid fa-coins"></i> เดิมพัน!
@@ -603,8 +612,9 @@
     let isSpectating = false;
     let currentRoomState = null;
     let tempHatColor = '#4a2e18';
+    let pendingReconnectRoomCode = null;
 
-    // === ระบบเสียงประกอบสังเคราะห์ (Web Audio API) ไม่ต้องโหลดไฟล์ MP3 ภายนอก ===
+    // Web Audio FX
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     function playSound(type) {
@@ -616,7 +626,6 @@
 
       const now = audioCtx.currentTime;
       if (type === 'deal') {
-        // เสียงแจกไพ่กรีด
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(350, now);
         osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
@@ -625,7 +634,6 @@
         osc.start(now);
         osc.stop(now + 0.08);
       } else if (type === 'chip') {
-        // เสียงชิปกระทบกัน
         osc.type = 'sine';
         osc.frequency.setValueAtTime(1200, now);
         osc.frequency.setValueAtTime(1800, now + 0.03);
@@ -634,7 +642,6 @@
         osc.start(now);
         osc.stop(now + 0.08);
       } else if (type === 'win') {
-        // เสียงดีใจชนะเดิมพัน
         [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
           const o = audioCtx.createOscillator();
           const g = audioCtx.createGain();
@@ -647,7 +654,6 @@
           o.stop(now + (i + 1) * 0.12);
         });
       } else if (type === 'bell') {
-        // เสียงแจ้งเตือนถึงเทิร์นตนเอง
         osc.type = 'sine';
         osc.frequency.setValueAtTime(880, now);
         gain.gain.setValueAtTime(0.3, now);
@@ -667,9 +673,9 @@
     const modalWardrobe = document.getElementById('modalWardrobe');
     const modalHistory = document.getElementById('modalHistory');
     const modalRules = document.getElementById('modalRules');
+    const modalReconnect = document.getElementById('modalReconnect');
     const btnAdminPanel = document.getElementById('btnAdminPanel');
 
-    // จัดการเปิด/ปิดหน้าต่างกติกา
     document.getElementById('btnOpenRulesLobby').onclick = () => modalRules.classList.remove('hidden');
     document.getElementById('btnOpenRulesInGame').onclick = () => modalRules.classList.remove('hidden');
     document.getElementById('btnCloseRules').onclick = () => modalRules.classList.add('hidden');
@@ -682,7 +688,6 @@
       document.getElementById('boxWinningReveal').classList.add('hidden');
     }
 
-    // === TOP-DOWN COWBOY SVG ENGINE (7 หมวก + แขนเท้าขอบโต๊ะ)[cite: 13] ===
     function generateTopDownCowboySVG(avatar = {}, isTurn = false, isMe = false, isWaiting = false) {
       const hat = avatar.hatStyle || 'cattleman';
       const hatCol = avatar.hatColor || '#4a2e18';
@@ -801,9 +806,38 @@
         } else {
           currentUser = res.user;
           screenAuth.classList.add('hidden');
+
+          // ถ้าพบเกมที่ค้างอยู่จากการหลุด ให้เปิดถาม Reconnect
+          if (res.reconnectData) {
+            pendingReconnectRoomCode = res.reconnectData.roomCode;
+            document.getElementById('lblReconnectRoomName').innerText = res.reconnectData.roomName;
+            modalReconnect.classList.remove('hidden');
+          } else {
+            screenLobby.classList.remove('hidden');
+            updateLobbyUI();
+          }
+        }
+      });
+    };
+
+    // การตอบรับ Reconnect
+    document.getElementById('btnReconnectAccept').onclick = () => {
+      modalReconnect.classList.add('hidden');
+      socket.emit('room:confirm_reconnect', { roomCode: pendingReconnectRoomCode, accept: true }, (res) => {
+        if (res.success) {
+          enterGameScreen(pendingReconnectRoomCode);
+        } else {
           screenLobby.classList.remove('hidden');
           updateLobbyUI();
         }
+      });
+    };
+
+    document.getElementById('btnReconnectReject').onclick = () => {
+      modalReconnect.classList.add('hidden');
+      socket.emit('room:confirm_reconnect', { roomCode: pendingReconnectRoomCode, accept: false }, () => {
+        screenLobby.classList.remove('hidden');
+        updateLobbyUI();
       });
     };
 
@@ -832,6 +866,7 @@
       modalWardrobe.classList.add('hidden');
       modalHistory.classList.add('hidden');
       modalRules.classList.add('hidden');
+      modalReconnect.classList.add('hidden');
       document.getElementById('authPassword').value = '';
       screenAuth.classList.remove('hidden');
     });
@@ -1119,7 +1154,7 @@
       else socket.emit('game:stand_up');
     };
 
-    // แผงเดิมพันสไลเดอร์และทางลัด
+    // แผงเดิมพัน
     const sliderBet = document.getElementById('sliderBet');
     const inputBet = document.getElementById('inputBetNumber');
 
@@ -1162,16 +1197,15 @@
 
       const me = state.players.find(p => p.username === currentUser.username);
       
-      // อัปเดตช่วงของ Slider
       if (me) {
         const maxVal = Math.max(10, Math.min(me.chips, state.pot));
         sliderBet.max = maxVal;
       }
 
-      // แสดงไพ่บนมือ 4 ใบของผู้เล่น (Hero Cards สไตล์ใหญ่พรีเมียม)
+      // แสดงไพ่บนมือ 4 ใบของผู้เล่น (ไพ่ใหญ่ ชัดเจน ไม่บัค)
       const handBox = document.getElementById('myHandCards');
       handBox.innerHTML = '';
-      if (me && me.hand && me.hand.length > 0 && !isSpectating && !me.isWaiting) {
+      if (me && me.hand && me.hand.length > 0 && !isSpectating && !me.isWaiting && state.isGameRunning) {
         me.hand.forEach(c => {
           handBox.innerHTML += `
             <div class="w-12 h-16 sm:w-14 sm:h-20 bg-white text-stone-900 border-2 border-amber-400 rounded-lg flex flex-col items-center justify-between p-1 font-bold text-sm sm:text-base shadow-2xl transition transform hover:-translate-y-2 hover:scale-105 ${c.color === 'red' ? 'text-rose-600' : 'text-stone-950'}">
@@ -1185,10 +1219,12 @@
         handBox.innerHTML = '<span class="text-xs text-amber-400/90 font-bold italic animate-pulse">⏳ คุณนั่งเข้ามาระหว่างเกม (รอเล่นเมื่อ Pot = 0)</span>';
       } else if (isSpectating) {
         handBox.innerHTML = '<span class="text-xs text-amber-300/80 italic">คุณกำลังยืนดูรอบโต๊ะ</span>';
+      } else {
+        handBox.innerHTML = '<span class="text-xs text-stone-500 italic">รอเริ่มแจกไพ่...</span>';
       }
 
       checkPlayerTurnLock(state);
-      renderTopDownSeats(state.players, state.activeTurnIndex);
+      renderTopDownSeats(state.players, state.activeTurnIndex, state.isGameRunning);
     });
 
     socket.on('game:dealing_cards', () => {
@@ -1205,10 +1241,11 @@
       if (myIdx === -1) myIdx = 0;
 
       currentRoomState.players.forEach((p, idx) => {
+        if (p.isWaiting) return;
         const relIdx = (idx - myIdx + total) % total;
         const angle = (relIdx / total) * 2 * Math.PI + Math.PI / 2;
 
-        const rx = 39;
+        const rx = 37;
         const ry = 34;
         const targetLeft = 50 + rx * Math.cos(angle) + 2.5;
         const targetTop = 50 + ry * Math.sin(angle) - 1.5;
@@ -1242,8 +1279,8 @@
       document.getElementById('sliderBet').disabled = !enabled;
     }
 
-    // เรนเดอร์ตัวละครพร้อมจัดวางตำแหน่งไพ่ข้างลำตัว และรองรับสถานะตัวจางเมื่อรอเล่น[cite: 13, 14]
-    function renderTopDownSeats(players, activeIndex) {
+    // เรนเดอร์ตัวละครรอบขอบโต๊ะพอดีเป๊ะ (ไม่ถูกโต๊ะครอบ และไพ่คว่ำจะไม่ขึ้นจนกว่าจะเริ่มเล่น)
+    function renderTopDownSeats(players, activeIndex, isGameRunning) {
       const c = document.getElementById('seatsContainer');
       c.innerHTML = '';
       const total = players.length;
@@ -1259,8 +1296,9 @@
         const relIdx = (idx - myIdx + total) % total;
         const angle = (relIdx / total) * 2 * Math.PI + Math.PI / 2;
 
-        const rx = 40;
-        const ry = 35;
+        // วางตัวละครที่ขอบนอกของโต๊ะพอดี ไม่ให้ขอบโต๊ะมาทับ
+        const rx = 42;
+        const ry = 39;
         const charLeft = 50 + rx * Math.cos(angle);
         const charTop = 50 + ry * Math.sin(angle);
 
@@ -1269,40 +1307,40 @@
         const perpX = -sinA;
         const perpY = cosA;
 
-        // วางไพ่คว่ำ 2 ใบประจำตัวเฉียงข้างลำตัว (เหมือนในรูปต้นแบบ)[cite: 14]
-        const cardLeft = charLeft - cosA * 4.5 + perpX * 5.0;
-        const cardTop = charTop - sinA * 4.5 + perpY * 5.0;
+        // ไพ่คว่ำ 2 ใบประจำตัววางข้างลำตัว
+        const cardLeft = charLeft - cosA * 5.0 + perpX * 4.5;
+        const cardTop = charTop - sinA * 5.0 + perpY * 4.5;
 
-        // วางชิปเดิมพันไว้ข้างลำตัวอีกฝั่ง[cite: 14]
-        const chipLeft = charLeft - cosA * 5.5 - perpX * 4.5;
-        const chipTop = charTop - sinA * 5.5 - perpY * 4.5;
+        // ชิปวางข้างลำตัวอีกฝั่ง
+        const chipLeft = charLeft - cosA * 6.5 - perpX * 4.5;
+        const chipTop = charTop - sinA * 6.5 - perpY * 4.5;
 
         c.innerHTML += `
-          <!-- ตัวละคร Top-Down (ถ้า p.isWaiting = true จะแสดงเป็นตัวจางโปร่งแสง) -->
-          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto z-20" style="left: ${charLeft}%; top: ${charTop}%;">
+          <!-- ตัวละคร Top-Down -->
+          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto z-25" style="left: ${charLeft}%; top: ${charTop}%;">
             <div id="bubble_${displayName}" class="hidden chat-bubble bg-amber-400 text-stone-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-lg border border-amber-600 mb-1 z-30 whitespace-nowrap"></div>
 
             ${generateTopDownCowboySVG(p.avatar, isTurn, isMe, p.isWaiting)}
             
             <div class="bg-stone-950/95 border ${isTurn ? 'border-amber-400 gold-glow' : 'border-stone-700'} px-2 py-0.5 rounded-lg text-center shadow-xl -mt-2 min-w-[76px] ${p.isWaiting ? 'opacity-50' : ''}">
-              <div class="text-[10px] font-black text-amber-200 truncate max-w-[85px]">${displayName}</div>
+              <div class="text-[10px] font-black text-amber-200 truncate max-w-[85px]">${displayName} ${p.isOffline ? '<span class="text-rose-400">(หลุด)</span>' : ''}</div>
               <div class="text-[9px] text-amber-400 font-bold">
                 ${p.isWaiting ? '<span class="text-stone-400">รอรอบถัดไป</span>' : `${p.chips.toLocaleString()} 🪙`}
               </div>
             </div>
           </div>
 
-          <!-- ไพ่คว่ำ 2 ใบประจำที่นั่ง (แสดงเฉพาะคนที่เล่นอยู่)[cite: 14] -->
-          ${!p.isWaiting ? `
-            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-0.5 z-15 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
+          <!-- ไพ่คว่ำ 2 ใบประจำที่นั่ง (จะแสดงเฉพาะตอนเริ่มเกมแล้วเท่านั้น และคนนั้นไม่ได้รอเล่น) -->
+          ${(isGameRunning && !p.isWaiting) ? `
+            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-0.5 z-20 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
               <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform -rotate-12"></div>
               <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform rotate-6"></div>
             </div>
           ` : ''}
 
-          <!-- กองชิปเดิมพันหน้าผู้เล่น[cite: 14] -->
+          <!-- กองชิปเดิมพันหน้าผู้เล่น -->
           ${p.lastBet > 0 ? `
-            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 chip-stack flex items-center gap-1 bg-black/75 border border-amber-500/80 px-2 py-0.5 rounded-full z-15 pointer-events-none" style="left: ${chipLeft}%; top: ${chipTop}%;">
+            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 chip-stack flex items-center gap-1 bg-black/75 border border-amber-500/80 px-2 py-0.5 rounded-full z-20 pointer-events-none" style="left: ${chipLeft}%; top: ${chipTop}%;">
               <i class="fa-solid fa-coins text-amber-400 text-[10px]"></i>
               <span class="text-[10px] font-black text-amber-300 font-rye">${p.lastBet.toLocaleString()}</span>
             </div>

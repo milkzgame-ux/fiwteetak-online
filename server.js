@@ -69,7 +69,6 @@ const RANK_VALUES = {
   'J': 11, 'Q': 12, 'K': 13, 'A': 14
 };
 
-// สุ่มไพ่มาตรฐานคาสิโน
 function createDeck() {
   const deck = [];
   for (const s of SUITS) {
@@ -77,6 +76,7 @@ function createDeck() {
       deck.push({ suit: s, rank: r, value: RANK_VALUES[r], color: (s === '♥' || s === '♦') ? 'red' : 'black' });
     }
   }
+  // สับไพ่แบบสุ่ม 100%
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -97,16 +97,14 @@ io.on('connection', (socket) => {
   let currentAuthUser = null;
   let currentRoomId = null;
 
+  // กู้คืนข้อมูลเฉพาะบัญชีตัวเอง (แก้ปัญหาแอปพังจาก payload ขนาดใหญ่)
   socket.on('db:sync_restore', ({ backupData }) => {
-    if (backupData && typeof backupData === 'object') {
-      let updated = false;
-      for (const [k, v] of Object.entries(backupData)) {
-        if (!USERS[k] || (v.chips && v.chips > (USERS[k].chips || 0))) {
-          USERS[k] = v;
-          updated = true;
-        }
+    if (backupData && backupData.username) {
+      const u = backupData.username;
+      if (!USERS[u] || (backupData.chips > USERS[u].chips)) {
+        USERS[u] = backupData;
+        saveUsersDatabase();
       }
-      if (updated) saveUsersDatabase();
     }
   });
 
@@ -128,7 +126,7 @@ io.on('connection', (socket) => {
       avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' }
     };
     saveUsersDatabase();
-    cb({ success: true, user: sanitizeUser(USERS[username]), allDb: USERS });
+    cb({ success: true, user: sanitizeUser(USERS[username]) });
   });
 
   socket.on('auth:login', ({ username, password }, cb) => {
@@ -154,7 +152,7 @@ io.on('connection', (socket) => {
       else delete DISCONNECTED_PLAYERS[username];
     }
 
-    cb({ success: true, user: sanitizeUser(user), allDb: USERS, reconnectData });
+    cb({ success: true, user: sanitizeUser(user), reconnectData });
   });
 
   socket.on('auth:logout', () => {
@@ -215,7 +213,7 @@ io.on('connection', (socket) => {
       }
       emitRoomState(ROOMS[currentRoomId]);
     }
-    cb({ success: true, user: sanitizeUser(USERS[currentAuthUser]), allDb: USERS });
+    cb({ success: true, user: sanitizeUser(USERS[currentAuthUser]) });
   });
 
   socket.on('chat:global_send', ({ text }) => {
@@ -249,7 +247,7 @@ io.on('connection', (socket) => {
     user.chips += 2000;
     user.lastDailyClaim = now;
     saveUsersDatabase();
-    cb({ success: true, chips: user.chips, allDb: USERS });
+    cb({ success: true, chips: user.chips });
   });
 
   socket.on('admin:skip_day', (_, cb) => {
@@ -261,7 +259,7 @@ io.on('connection', (socket) => {
       if (u.bankDebt > 0) u.bankDebt = Math.floor(u.bankDebt * 1.05);
     }
     saveUsersDatabase();
-    cb({ success: true, user: sanitizeUser(user), allDb: USERS });
+    cb({ success: true, user: sanitizeUser(user) });
   });
 
   socket.on('admin:get_players', (_, cb) => {
@@ -277,7 +275,7 @@ io.on('connection', (socket) => {
     if (clearDebt) u.bankDebt = 0;
     if (toggleBan !== undefined) u.isBanned = toggleBan;
     saveUsersDatabase();
-    cb({ success: true, user: sanitizeUser(u), allDb: USERS });
+    cb({ success: true, user: sanitizeUser(u) });
   });
 
   socket.on('bank:action', ({ type, amount }, cb) => {
@@ -302,19 +300,20 @@ io.on('connection', (socket) => {
       u.chips += wit;
     }
     saveUsersDatabase();
-    cb({ success: true, user: sanitizeUser(u), allDb: USERS });
+    cb({ success: true, user: sanitizeUser(u) });
   });
 
   socket.on('room:create', ({ roomName, maxPlayers, password, mode }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
     const newRoom = {
       code: roomCode,
       name: roomName || `Saloon #${roomCode}`,
       host: currentAuthUser,
       maxPlayers: parseInt(maxPlayers) || 6,
       password: password || null,
-      mode: mode || 'bot',
+      mode: mode || 'human',
       pot: 0,
       round: 1,
       deck: [],
@@ -329,11 +328,47 @@ io.on('connection', (socket) => {
       timer: null
     };
 
+    const userDbInfo = USERS[currentAuthUser] || { chips: 5000, displayName: currentAuthUser, avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' } };
+    
+    newRoom.players.push({
+      username: currentAuthUser,
+      displayName: userDbInfo.displayName,
+      chips: userDbInfo.chips,
+      hand: [],
+      avatar: userDbInfo.avatar,
+      isWaiting: false,
+      lastBet: 0,
+      isOffline: false,
+      isBotTemporary: false
+    });
+
+    // หากเป็นโหมดบอท ใส่บอทให้เต็มทันที (สร้างการแยกห้องบอท 100%)
+    if (newRoom.mode === 'bot') {
+      let botIdx = 0;
+      while (newRoom.players.length < newRoom.maxPlayers) {
+        const bData = BOT_PRESETS[botIdx % BOT_PRESETS.length];
+        const bName = `${bData.name}_${Math.floor(Math.random()*90+10)}`;
+        newRoom.players.push({
+          username: bName,
+          displayName: bName,
+          chips: 2000,
+          hand: [],
+          avatar: { hatStyle: bData.hat, hatColor: bData.hatColor, skinTone: bData.skin, sleeveColor: bData.sleeve, badge: bData.badge },
+          isBot: true,
+          isWaiting: false,
+          lastBet: 0
+        });
+        botIdx++;
+      }
+    }
+
     ROOMS[roomCode] = newRoom;
     currentRoomId = roomCode;
     socket.currentRoomId = roomCode;
-    joinRoomInternal(socket, roomCode, currentAuthUser);
+    socket.join(roomCode);
+    
     cb({ success: true, roomCode });
+    emitRoomState(newRoom);
     broadcastLobbyRooms();
   });
 
@@ -345,8 +380,39 @@ io.on('connection', (socket) => {
 
     currentRoomId = roomCode;
     socket.currentRoomId = roomCode;
-    joinRoomInternal(socket, roomCode, currentAuthUser);
+    socket.join(roomCode);
+
+    const userDbInfo = USERS[currentAuthUser] || { chips: 5000, displayName: currentAuthUser, avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' } };
+    const playerObj = {
+      username: currentAuthUser,
+      displayName: userDbInfo.displayName,
+      chips: userDbInfo.chips,
+      hand: [],
+      avatar: userDbInfo.avatar,
+      isWaiting: room.isGameRunning,
+      lastBet: 0,
+      isOffline: false,
+      isBotTemporary: false
+    };
+
+    const totalCurrentPlayers = room.players.length + room.waitingQueue.length;
+
+    if (totalCurrentPlayers < room.maxPlayers) {
+      if (room.isGameRunning) {
+        room.waitingQueue.push(playerObj);
+        socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นและรับปันผลได้');
+      } else {
+        room.players.push(playerObj);
+      }
+    } else {
+      if (!room.spectators.includes(currentAuthUser)) {
+        room.spectators.push(currentAuthUser);
+      }
+      socket.emit('game:msg', 'ที่นั่งบนโต๊ะเต็มแล้ว! คุณได้เข้าร่วมในฐานะ ผู้ชม');
+    }
+
     cb({ success: true, roomCode });
+    emitRoomState(room);
     broadcastLobbyRooms();
   });
 
@@ -381,9 +447,7 @@ io.on('connection', (socket) => {
 
     room.spectators = room.spectators.filter(u => u !== currentAuthUser);
     
-    // ป้องกันการ Error หากข้อมูล user สูญหาย
-    const userDbInfo = USERS[currentAuthUser] || { chips: 5000, displayName: currentAuthUser, avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' } };
-    
+    const userDbInfo = USERS[currentAuthUser] || { chips: 5000, displayName: currentAuthUser };
     const pObj = {
       username: currentAuthUser,
       displayName: userDbInfo.displayName,
@@ -398,7 +462,7 @@ io.on('connection', (socket) => {
 
     if (room.isGameRunning) {
       room.waitingQueue.push(pObj);
-      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นได้');
+      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าเล่นได้');
     } else {
       room.players.push(pObj);
     }
@@ -507,71 +571,6 @@ function broadcastLobbyRooms() {
   io.emit('lobby:rooms_update', roomList);
 }
 
-function joinRoomInternal(socket, roomCode, username) {
-  const room = ROOMS[roomCode];
-  socket.join(roomCode);
-
-  const userDbInfo = USERS[username] || { chips: 5000, displayName: username, avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' } };
-
-  const playerObj = {
-    username,
-    displayName: userDbInfo.displayName,
-    chips: userDbInfo.chips,
-    hand: [],
-    avatar: userDbInfo.avatar,
-    isWaiting: room.isGameRunning,
-    lastBet: 0,
-    isOffline: false,
-    isBotTemporary: false
-  };
-
-  const totalCurrentPlayers = room.players.length + room.waitingQueue.length;
-
-  if (totalCurrentPlayers < room.maxPlayers) {
-    if (room.isGameRunning) {
-      room.waitingQueue.push(playerObj);
-      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นได้');
-    } else {
-      room.players.push(playerObj);
-    }
-  } else {
-    if (!room.spectators.includes(username)) {
-      room.spectators.push(username);
-    }
-    socket.emit('game:msg', 'ที่นั่งบนโต๊ะเต็มแล้ว! คุณได้เข้าร่วมในฐานะ ผู้ชม');
-  }
-
-  if (room.mode === 'bot' && (room.players.length + room.waitingQueue.length) < room.maxPlayers) {
-    let botIdx = 0;
-    while ((room.players.length + room.waitingQueue.length) < room.maxPlayers) {
-      const bData = BOT_PRESETS[botIdx % BOT_PRESETS.length];
-      const bName = `${bData.name}_${Math.floor(Math.random()*90+10)}`;
-      room.players.push({
-        username: bName,
-        displayName: bName,
-        chips: 2000,
-        hand: [],
-        avatar: { hatStyle: bData.hat, hatColor: bData.hatColor, skinTone: bData.skin, sleeveColor: bData.sleeve, badge: bData.badge },
-        isBot: true,
-        isWaiting: false,
-        lastBet: 0
-      });
-      botIdx++;
-    }
-  }
-
-  emitRoomState(room);
-
-  if (!room.isGameRunning) {
-    const realPlayers = room.players.filter(p => !p.isWaiting).length;
-    if (realPlayers >= 2) {
-      io.to(room.code).emit('game:need_start_click', 'โต๊ะพร้อมแล้ว! กดเริ่มเกมส์เพื่อเริ่มเล่นรอบแรก (หัก Ante 50)');
-    } else {
-      io.to(room.code).emit('game:need_start_click', 'กำลังรอผู้เล่นอย่างน้อย 2 คนเพื่อเริ่มเกม...');
-    }
-  }
-}
-
 function startNewGameRound(room) {
   room.isGameRunning = true;
   room.cardsDealt = false;
@@ -588,28 +587,27 @@ function startNewGameRound(room) {
     saveUsersDatabase();
   }
 
-  // จัดไพ่ให้ผู้เล่น (เพื่อให้ Client มีข้อมูลไพ่ก่อนทำแอนิเมชัน)
   room.players.forEach(p => {
     p.hand = [room.deck.pop(), room.deck.pop(), room.deck.pop(), room.deck.pop()];
   });
 
   room.activeTurnIndex = room.dealerIndex;
   
-  // บังคับให้ Client อัปเดตข้อมูลไพ่ทั้งหมดก่อนเริ่มยิงแอนิเมชัน
-  emitRoomState(room);
-
-  // คำนวณเวลาแอนิเมชัน: 4 รอบ x (จำนวนคน * 0.2s) + 1.2s สำหรับเผื่อใบสุดท้ายตกถึงพื้น
-  const activeCount = room.players.filter(p => !p.isWaiting).length;
-  const dealTime = (activeCount * 4 * 200) + 1200;
-
+  // ยิงคำสั่งแอนิเมชัน
   io.to(room.code).emit('game:dealing_cards');
 
-  // รอจนกว่าแอนิเมชันแจกครบ จึงจะเปิดสถานะพร้อมเล่น
+  // รออนิเมชันบินเสร็จ
+  const activeCount = room.players.filter(p => !p.isWaiting).length;
+  const dealTime = (activeCount * 4 * 150) + 700;
+
   setTimeout(() => {
     room.cardsDealt = true;
-    emitRoomState(room);
+    emitRoomState(room); // ส่งไพ่ให้ Client ปรากฏหลังแอนิเมชันจบ
     startTurnTimer(room);
   }, dealTime);
+
+  // อัปเดตสถานะตอนเริ่มต้น (แต่ยังไม่แสดงไพ่บนมือจนกว่าจะแจกเสร็จ)
+  emitRoomState(room);
 }
 
 function startTurnTimer(room) {
@@ -634,7 +632,7 @@ function startTurnTimer(room) {
     return;
   }
 
-  // จับเวลา 30 วิ ถ้าหมดเทิร์นให้เดิมพัน 10 อัตโนมัติ (หรือเทหมดตัวถ้าเงินไม่พอ 10)
+  // หากมนุษย์ไม่ตอบสนองใน 30 วิ บังคับหมอบลง 10
   room.timer = setTimeout(() => {
     processPlayerBet(room, currentP, 10);
   }, 30000);
@@ -643,39 +641,36 @@ function startTurnTimer(room) {
 function processPlayerBet(room, player, amount) {
   const maxPossible = Math.min(player.chips, room.pot);
   let finalBet = parseInt(amount) || 10;
-  if (finalBet < 10) finalBet = 10;
+  if (finalBet < 10) finalBet = Math.min(10, player.chips); // ขั้นต่ำ 10 ยกเว้นมีไม่ถึง
   if (finalBet > maxPossible) finalBet = maxPossible;
 
-  // หักเงินผู้เล่น
+  // หักเงินและอัปเดต POT
   player.chips -= finalBet;
   player.lastBet = finalBet;
   if (USERS[player.username]) USERS[player.username].chips = player.chips;
 
-  // เปิดไพ่กองกลาง
   const communityCard = room.deck.pop() || createDeck().pop();
-
   let highestWinningCard = null;
+
   player.hand.forEach(c => {
     if (c.suit === communityCard.suit && c.value > communityCard.value) {
-      if (!highestWinningCard || c.value > highestWinningCard.value) {
-        highestWinningCard = c;
-      }
+      if (!highestWinningCard || c.value > highestWinningCard.value) highestWinningCard = c;
     }
   });
 
   const isWin = highestWinningCard !== null;
 
-  // คืนเงิน/หักเงิน ตามกฎคาสิโน
+  // จ่ายเงินทันที (ชนะได้ 1:1 จาก POT, แพ้เสียเข้า POT)
   if (isWin) {
-    // ได้คืนทุน + กำไร 1 เท่าจาก POT
     const wonAmount = finalBet * 2;
-    room.pot -= finalBet; // หักเนื้อ POT ออกไปจ่ายให้ผู้เล่น
+    room.pot -= finalBet;
     player.chips += wonAmount;
     if (USERS[player.username]) USERS[player.username].chips = player.chips;
   } else {
-    // แพ้ ยอดที่เดิมพันไว้จะเข้าไปสบทบ POT
-    room.pot += finalBet; 
+    room.pot += finalBet;
   }
+  
+  saveUsersDatabase();
 
   const pName = player.displayName || player.username;
   room.roundHistory.unshift({
@@ -689,8 +684,10 @@ function processPlayerBet(room, player, amount) {
     timestamp: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
   });
 
-  saveUsersDatabase();
+  // ซิงค์ยอดเงินให้ผู้เล่นเห็นทันที
+  emitRoomState(room);
 
+  // หงายไพ่กองกลาง
   io.to(room.code).emit('game:showdown_result', {
     player: pName,
     communityCard,
@@ -727,7 +724,7 @@ function checkNextTurnOrRoundEnd(room) {
     }
 
     emitRoomState(room);
-    io.to(room.code).emit('game:need_start_click', 'กองกลางหมดแล้ว (Pot Reset)! ผู้เล่นใหม่เข้าร่วมได้แล้ว กดเริ่มเกมส์เพื่อเริ่มรอบใหม่');
+    io.to(room.code).emit('game:need_start_click', 'กองกลางหมดแล้ว (Pot Reset)! กดเริ่มเกมส์เพื่อเริ่มรอบใหม่');
     return;
   }
 
@@ -769,7 +766,6 @@ function checkNextTurnOrRoundEnd(room) {
 function checkAndCleanEmptyRoom(roomCode) {
   const room = ROOMS[roomCode];
   if (!room) return;
-
   const realHumans = 
     room.players.filter(p => !p.isBot && !p.isOffline).length +
     room.waitingQueue.filter(p => !p.isBot).length +

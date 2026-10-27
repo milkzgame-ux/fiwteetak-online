@@ -58,8 +58,8 @@ function saveUsersDatabase() {
 
 loadUsersDatabase();
 
-const ACTIVE_SESSIONS = {}; // username -> socketId
-const DISCONNECTED_PLAYERS = {}; // username -> { roomCode, disconnectTimer }
+const ACTIVE_SESSIONS = {};
+const DISCONNECTED_PLAYERS = {};
 const ROOMS = {};
 
 const SUITS = ['♠', '♥', '♦', '♣'];
@@ -116,7 +116,6 @@ io.on('connection', (socket) => {
     if (!user || user.password !== password) return cb({ success: false, msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
     if (user.isBanned) return cb({ success: false, msg: 'บัญชีถูกระงับการใช้งาน' });
 
-    // เข้าซ้อน: ตัดเครื่องเดิมออก
     if (ACTIVE_SESSIONS[username] && ACTIVE_SESSIONS[username] !== socket.id) {
       const oldSocket = io.sockets.sockets.get(ACTIVE_SESSIONS[username]);
       if (oldSocket) {
@@ -128,7 +127,6 @@ io.on('connection', (socket) => {
     ACTIVE_SESSIONS[username] = socket.id;
     currentAuthUser = username;
 
-    // ตรวจสอบว่าผู้เล่นเคยหลุดค้างไว้ในห้องไหนหรือไม่
     let reconnectData = null;
     if (DISCONNECTED_PLAYERS[username]) {
       const rCode = DISCONNECTED_PLAYERS[username].roomCode;
@@ -142,7 +140,6 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(user), reconnectData });
   });
 
-  // ยืนยันกลับเข้าห้องเดิม
   socket.on('room:confirm_reconnect', ({ roomCode, accept }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const room = ROOMS[roomCode];
@@ -156,7 +153,6 @@ io.on('connection', (socket) => {
       return cb({ success: false });
     }
 
-    // กู้คืนสถานะผู้เล่น
     clearTimeout(DISCONNECTED_PLAYERS[currentAuthUser].disconnectTimer);
     delete DISCONNECTED_PLAYERS[currentAuthUser];
 
@@ -365,7 +361,7 @@ io.on('connection', (socket) => {
 
     if (room.isGameRunning) {
       room.waitingQueue.push(pObj);
-      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ตัวละครจะอยู่ในสถานะ "รอเล่น" จนกว่ากองกลาง (Pot) จะหมด');
+      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ตัวละครจะอยู่ในสถานะ "รอเล่น" จนกว่ากองกลาง (Pot) จะหมดเหลือ 0');
     } else {
       room.players.push(pObj);
     }
@@ -377,6 +373,7 @@ io.on('connection', (socket) => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
 
+    // เงื่อนไขเคร่งครัด: ย้ายคนจาก waitingQueue ได้ก็ต่อเมื่อ Pot เป็น 0 เท่านั้น
     if (room.pot === 0 && room.waitingQueue.length > 0) {
       while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
         const waitingP = room.waitingQueue.shift();
@@ -420,7 +417,6 @@ io.on('connection', (socket) => {
       if (room && currentAuthUser) {
         const player = room.players.find(p => p.username === currentAuthUser);
         if (player) {
-          // สลับให้เป็น Bot เล่นแทนชั่วคราว
           player.isOffline = true;
           player.isBotTemporary = true;
 
@@ -432,11 +428,11 @@ io.on('connection', (socket) => {
             }, 1500);
           }
 
-          // ตั้งเวลานับถอยหลัง 60 วิ ถ้าไม่ต่อกลับจะเตะออก
+          // ตั้งเวลารอ 3 นาที (180,000 ms) ถ้าไม่กลับมาจะเตะออกห้องทันที
           const tId = setTimeout(() => {
             handlePlayerLeave(socket, room.code, currentAuthUser);
             delete DISCONNECTED_PLAYERS[currentAuthUser];
-          }, 60000);
+          }, 180000);
 
           DISCONNECTED_PLAYERS[currentAuthUser] = {
             roomCode: room.code,
@@ -497,7 +493,7 @@ function joinRoomInternal(socket, roomCode, username) {
 
   if (room.isGameRunning) {
     room.waitingQueue.push(playerObj);
-    socket.emit('game:msg', 'คุณเข้าห้องกลางเกม! ต้องรอกองกลาง (Pot) หมดก่อนจึงจะเข้าร่วมเล่นและรับปันผลได้');
+    socket.emit('game:msg', 'คุณเข้าห้องกลางเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นและรับปันผลได้');
   } else {
     room.players.push(playerObj);
   }
@@ -547,13 +543,16 @@ function startNewGameRound(room) {
     saveUsersDatabase();
   }
 
-  // แจกไพ่ 4 ใบ
+  // แจกไพ่ 4 ใบเฉพาะผู้เล่นที่ไม่ได้รอ
   room.players.forEach(p => {
     p.hand = [room.deck.pop(), room.deck.pop(), room.deck.pop(), room.deck.pop()];
   });
 
   room.activeTurnIndex = room.dealerIndex;
+  
+  // แจ้งเตือนแอนิเมชันแจกไพ่
   io.to(room.code).emit('game:dealing_cards');
+
   emitRoomState(room);
   startTurnTimer(room);
 }
@@ -564,13 +563,14 @@ function startTurnTimer(room) {
   if (!currentP) return;
 
   const currentDisplayName = currentP.displayName || currentP.username;
+  
+  // สั่งนับเวลาเต็ม 3 นาที (180 วินาที)
   io.to(room.code).emit('game:turn_start', {
     activeUsername: currentP.username,
     activeDisplayName: currentDisplayName,
-    timeoutSec: 20
+    timeoutSec: 180
   });
 
-  // ถ้าเป็นบอท หรือเป็นผู้เล่นที่หลุดไปชั่วคราว ให้ลงเดิมพันอัตโนมัติ
   if (currentP.isBot || currentP.isBotTemporary) {
     setTimeout(() => {
       const maxBet = Math.min(currentP.chips, room.pot);
@@ -580,9 +580,10 @@ function startTurnTimer(room) {
     return;
   }
 
+  // จับเวลา 180 วินาที (3 นาที)
   room.timer = setTimeout(() => {
     processPlayerBet(room, currentP, 10);
-  }, 20000);
+  }, 180000);
 }
 
 function processPlayerBet(room, player, amount) {
@@ -631,6 +632,7 @@ function processPlayerBet(room, player, amount) {
 
   saveUsersDatabase();
 
+  // ส่งผลลัพธ์หงายไพ่กลางโต๊ะและไพ่ที่ชนะ
   io.to(room.code).emit('game:showdown_result', {
     player: pName,
     communityCard,
@@ -646,12 +648,12 @@ function processPlayerBet(room, player, amount) {
 }
 
 function checkNextTurnOrRoundEnd(room) {
-  // เมื่อ Pot หมด
+  // เมื่อ Pot กองกลางหมดเหลือ 0
   if (room.pot <= 0) {
     room.pot = 0;
     room.isGameRunning = false;
 
-    // ถ้ามีคนที่หลุดการเชื่อมต่ออยู่ ให้เตะออกจากห้องทันทีเมื่อ Pot หมด
+    // 1. ถ้ามีคนหลุดการเชื่อมต่ออยู่ ให้เตะออกจากห้องทันทีเมื่อ Pot หมด
     const offlinePlayers = room.players.filter(p => p.isOffline);
     offlinePlayers.forEach(p => {
       handlePlayerLeave(null, room.code, p.username);
@@ -661,8 +663,15 @@ function checkNextTurnOrRoundEnd(room) {
       }
     });
 
+    // 2. ดึงผู้เล่นที่รออยู่ใน waitingQueue เข้ามาเล่นเป็นผู้เล่นจริงในรอบถัดไป
+    while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
+      const waitingP = room.waitingQueue.shift();
+      waitingP.isWaiting = false;
+      room.players.push(waitingP);
+    }
+
     emitRoomState(room);
-    io.to(room.code).emit('game:need_start_click', 'กองกลางหมดแล้ว! ผู้เล่นใหม่เข้าร่วมได้แล้ว กดเริ่มเกมส์เพื่อเริ่มรอบใหม่');
+    io.to(room.code).emit('game:need_start_click', 'กองกลางหมดแล้ว (Pot Reset)! ผู้เล่นใหม่เข้าร่วมได้แล้ว กดเริ่มเกมส์เพื่อเริ่มรอบใหม่');
     return;
   }
 
@@ -793,5 +802,5 @@ function emitRoomState(room) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server online with Reconnect & Fair Table engine on port ${PORT}`);
+  console.log(`Server online with 3-Min timeout & Pot-Reset Queue on port ${PORT}`);
 });

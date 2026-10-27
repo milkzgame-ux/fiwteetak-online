@@ -18,7 +18,6 @@
     }
     .font-rye { font-family: 'Rye', cursive; }
     
-    /* โต๊ะคาสิโนสัดส่วนพอดี 78% ไม่ครอบตัวละคร */
     .poker-saloon-table {
       background: radial-gradient(ellipse at center, #ea580c 0%, #c2410c 60%, #7c2d12 100%);
       border: 14px solid #3e2213;
@@ -62,7 +61,7 @@
     /* แอนิเมชันแจกไพ่พุ่งออกจากสำรับไปจุดข้างตัวละคร */
     @keyframes dealFly {
       0% {
-        top: 38%;
+        top: 28%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.2) rotate(180deg);
         opacity: 0;
@@ -74,7 +73,7 @@
       }
     }
     .animate-deal-card {
-      animation: dealFly 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation: dealFly 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
 
     .chat-bubble {
@@ -206,7 +205,6 @@
       </div>
     </header>
 
-    <!-- Main Lobby Split -->
     <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-3 overflow-hidden">
       <div class="lg:col-span-2 bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -469,7 +467,7 @@
     </div>
   </div>
 
-  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE - FITTED COMPACT) ================= -->
+  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE) ================= -->
   <div id="screenGame" class="hidden relative w-full h-full max-w-[1100px] max-h-[660px] flex flex-col justify-between p-2">
     <!-- Top HUD Bar -->
     <div class="flex items-center justify-between bg-stone-950/80 backdrop-blur border border-amber-900/80 rounded-xl px-3 py-1 text-xs shadow-lg z-40">
@@ -502,7 +500,7 @@
       </div>
     </div>
 
-    <!-- Table Felt (โต๊ะสัดส่วนพอดี 78% ไม่ครอบตัวละคร) -->
+    <!-- Table Felt -->
     <div class="relative flex-1 my-1 flex items-center justify-center overflow-hidden">
       <div class="table-wood-rim w-[78%] h-[74%] flex items-center justify-center">
         <div class="poker-saloon-table w-full h-full flex items-center justify-center">
@@ -512,24 +510,23 @@
             <div class="text-[9px] uppercase font-bold tracking-widest text-amber-900">Saloon Poker Table</div>
           </div>
 
-          <!-- สำรับไพ่กลางโต๊ะสำหรับแอนิเมชันแจกไพ่ -->
+          <!-- สำรับไพ่กลางโต๊ะสำหรับแจกไพ่ -->
           <div id="deckCenterPile" class="absolute top-[28%] z-15 flex flex-col items-center pointer-events-none">
             <div class="w-9 h-13 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl relative">
               <div class="absolute inset-0 flex items-center justify-center text-blue-200 opacity-60 text-xs font-bold">♠</div>
             </div>
           </div>
 
-          <!-- ชิป POT กลางโต๊ะ -->
-          <div class="absolute top-[40%] flex flex-col items-center pointer-events-none z-10">
-            <div class="flex items-center gap-1.5 bg-black/50 border border-amber-500/50 px-3 py-0.5 rounded-full shadow-lg">
+          <!-- จัดเลเยอร์กลางโต๊ะแบบ Flex คอลัมน์ ไม่ให้ชิปทับหัวไพ่ -->
+          <div class="relative z-30 flex flex-col items-center justify-center space-y-2 mt-4 pointer-events-none">
+            <!-- ชิป POT กลางโต๊ะ -->
+            <div class="flex items-center gap-1.5 bg-black/60 border border-amber-500/60 px-3.5 py-0.5 rounded-full shadow-lg">
               <i class="fa-solid fa-circle-dot text-amber-400 text-[10px] animate-spin"></i>
               <span id="lblCenterPotText" class="text-xs font-black text-amber-300 font-rye">0</span>
             </div>
-          </div>
 
-          <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
-          <div class="relative z-30 flex flex-col items-center mt-7">
-            <div id="boxShowcase" class="flex items-center gap-5 mb-1 min-h-[85px]">
+            <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
+            <div id="boxShowcase" class="flex items-center gap-5 min-h-[75px]">
               <div class="flex flex-col items-center">
                 <span class="text-[10px] text-amber-100 font-bold mb-0.5 drop-shadow">ไพ่กองกลาง</span>
                 <div id="cardCommunity" class="w-[52px] h-[72px] bg-stone-900 border-2 border-stone-700 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl text-stone-400">?</div>
@@ -541,8 +538,8 @@
               </div>
             </div>
 
-            <div id="txtGameStatus" class="text-xs font-bold text-amber-100 min-h-[18px] text-center drop-shadow px-3 py-0.5 bg-black/40 rounded-full"></div>
-            <button id="btnStartGameAction" class="hidden mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-7 py-2 rounded-full text-xs animate-bounce shadow-2xl border-2 border-green-300 transition">
+            <div id="txtGameStatus" class="text-xs font-bold text-amber-100 min-h-[18px] text-center drop-shadow px-3 py-0.5 bg-black/50 rounded-full"></div>
+            <button id="btnStartGameAction" class="hidden pointer-events-auto mt-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-7 py-2 rounded-full text-xs animate-bounce shadow-2xl border-2 border-green-300 transition">
               <i class="fa-solid fa-play"></i> กดเริ่มเกมส์
             </button>
           </div>
@@ -576,7 +573,7 @@
       </div>
     </div>
 
-    <!-- Controls Bottom Bar (แผงเดิมพันสไตล์ Poker Slider + Hero Cards) -->
+    <!-- Controls Bottom Bar -->
     <div id="controlsBar" class="bg-stone-950/95 border border-amber-900/80 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xl z-40">
       <div class="flex items-center gap-2">
         <span class="text-xs text-amber-300 font-bold mr-0.5">ไพ่ของคุณ:</span>
@@ -669,6 +666,28 @@
         osc.stop(now + 0.35);
       }
     }
+
+    // ระบบสำรองฐานข้อมูล Client-side Persistence (ป้องกันเงิน/บัญชีรีเซ็ตเมื่อ Render Deploy)
+    function saveLocalDbBackup(allDb) {
+      if (allDb && typeof allDb === 'object') {
+        localStorage.setItem('fiwteetak_users_db_backup', JSON.stringify(allDb));
+      }
+    }
+
+    function tryRestoreLocalDb() {
+      try {
+        const raw = localStorage.getItem('fiwteetak_users_db_backup');
+        if (raw) {
+          const backupData = JSON.parse(raw);
+          socket.emit('db:sync_restore', { backupData });
+        }
+      } catch (e) {}
+    }
+
+    // กู้คืนข้อมูลทันทีที่เชื่อมต่อกับ Socket Server
+    socket.on('connect', () => {
+      tryRestoreLocalDb();
+    });
 
     const screenAuth = document.getElementById('screenAuth');
     const screenLobby = document.getElementById('screenLobby');
@@ -812,6 +831,7 @@
           err.innerText = res.msg || 'เกิดข้อผิดพลาด';
         } else {
           currentUser = res.user;
+          saveLocalDbBackup(res.allDb);
           screenAuth.classList.add('hidden');
 
           if (res.reconnectData) {
@@ -826,7 +846,6 @@
       });
     };
 
-    // Reconnect Prompt Action
     document.getElementById('btnReconnectAccept').onclick = () => {
       modalReconnect.classList.add('hidden');
       socket.emit('room:confirm_reconnect', { roomCode: pendingReconnectRoomCode, accept: true }, (res) => {
@@ -986,6 +1005,7 @@
       socket.emit('user:update_avatar', { avatar: updatedAvatar, displayName: newNick }, (res) => {
         if (res.success) {
           currentUser = res.user;
+          saveLocalDbBackup(res.allDb);
           updateLobbyUI();
           modalWardrobe.classList.add('hidden');
           alert('บันทึกชื่อเล่นและชุดแต่งกายเรียบร้อยแล้ว!');
@@ -1021,16 +1041,23 @@
 
     window.adminAddChips = (targetUser) => {
       const amt = prompt(`เพิ่มเหรียญให้ ${targetUser}:`, '5000');
-      if (amt) socket.emit('admin:mod_user', { targetUser, addChips: parseInt(amt) }, () => loadAdminUsersList());
+      if (amt) socket.emit('admin:mod_user', { targetUser, addChips: parseInt(amt) }, (res) => {
+        if (res.success) saveLocalDbBackup(res.allDb);
+        loadAdminUsersList();
+      });
     };
     window.adminClearDebt = (targetUser) => {
-      if (confirm(`ล้างหนี้ ${targetUser}?`)) socket.emit('admin:mod_user', { targetUser, clearDebt: true }, () => loadAdminUsersList());
+      if (confirm(`ล้างหนี้ ${targetUser}?`)) socket.emit('admin:mod_user', { targetUser, clearDebt: true }, (res) => {
+        if (res.success) saveLocalDbBackup(res.allDb);
+        loadAdminUsersList();
+      });
     };
 
     document.getElementById('btnAdminSkipDay').onclick = () => {
       socket.emit('admin:skip_day', {}, (res) => {
         if (res.success) {
           currentUser = res.user;
+          saveLocalDbBackup(res.allDb);
           updateLobbyUI();
           alert('ข้าม 1 วันเรียบร้อย');
         }
@@ -1042,6 +1069,7 @@
       socket.emit('user:claim_daily', {}, (res) => {
         if (res.success) {
           currentUser.chips = res.chips;
+          saveLocalDbBackup(res.allDb);
           updateLobbyUI();
           alert('🎉 ได้รับ 2,000 เหรียญ!');
         } else {
@@ -1063,6 +1091,7 @@
       socket.emit('bank:action', { type, amount: amt }, (res) => {
         if (res.success) {
           currentUser = res.user;
+          saveLocalDbBackup(res.allDb);
           updateLobbyUI();
           document.getElementById('lblBankSavings').innerText = (currentUser.bankSavings || 0).toLocaleString() + ' 🪙';
           document.getElementById('lblBankDebt').innerText = (currentUser.bankDebt || 0).toLocaleString() + ' 🪙';
@@ -1211,7 +1240,7 @@
       // แสดงไพ่บนมือ 4 ใบของผู้เล่น
       const handBox = document.getElementById('myHandCards');
       handBox.innerHTML = '';
-      if (me && me.hand && me.hand.length > 0 && !isSpectating && !me.isWaiting && state.isGameRunning) {
+      if (me && me.hand && me.hand.length > 0 && !isSpectating && !me.isWaiting && state.isGameRunning && state.cardsDealt) {
         me.hand.forEach(c => {
           handBox.innerHTML += `
             <div class="w-12 h-16 sm:w-14 sm:h-20 bg-white text-stone-900 border-2 border-amber-400 rounded-lg flex flex-col items-center justify-between p-1 font-bold text-sm sm:text-base shadow-2xl transition transform hover:-translate-y-2 hover:scale-105 ${c.color === 'red' ? 'text-rose-600' : 'text-stone-950'}">
@@ -1230,10 +1259,10 @@
       }
 
       checkPlayerTurnLock(state);
-      renderTopDownSeats(state.players, state.activeTurnIndex, state.isGameRunning);
+      renderTopDownSeats(state.players, state.activeTurnIndex, state.isGameRunning, state.cardsDealt);
     });
 
-    // แอนิเมชันแจกไพ่เฉพาะคนที่อยู่ในรอบจริง
+    // แอนิเมชันแจกไพ่พุ่งตรงไปยังพิกัดเป๊ะๆ
     socket.on('game:dealing_cards', () => {
       resetCommunityShowcase();
       playSound('deal');
@@ -1248,14 +1277,22 @@
       if (myIdx === -1) myIdx = 0;
 
       currentRoomState.players.forEach((p, idx) => {
-        if (p.isWaiting) return; // ข้ามคนรอ ไม่ต้องแจกไพ่ให้
+        if (p.isWaiting) return;
         const relIdx = (idx - myIdx + total) % total;
         const angle = (relIdx / total) * 2 * Math.PI + Math.PI / 2;
 
-        const rx = 37;
-        const ry = 34;
-        const targetLeft = 50 + rx * Math.cos(angle) + 2.5;
-        const targetTop = 50 + ry * Math.sin(angle) - 1.5;
+        const rx = 42;
+        const ry = 39;
+        const charLeft = 50 + rx * Math.cos(angle);
+        const charTop = 50 + ry * Math.sin(angle);
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        const perpX = -sinA;
+        const perpY = cosA;
+
+        // เป้าหมายคือพิกัดไพ่ข้างตัวละคร
+        const targetLeft = charLeft - cosA * 5.0 + perpX * 4.5;
+        const targetTop = charTop - sinA * 5.0 + perpY * 4.5;
 
         const card = document.createElement('div');
         card.className = 'absolute w-5 h-7 bg-blue-800 border border-blue-400 rounded-sm shadow-xl animate-deal-card';
@@ -1267,11 +1304,11 @@
 
       setTimeout(() => {
         layer.innerHTML = '';
-      }, 1500);
+      }, 1200);
     });
 
     function checkPlayerTurnLock(state) {
-      if (!state.isGameRunning) {
+      if (!state.isGameRunning || !state.cardsDealt) {
         setBettingControlsEnabled(false);
         return;
       }
@@ -1286,8 +1323,8 @@
       document.getElementById('sliderBet').disabled = !enabled;
     }
 
-    // เรนเดอร์ตัวละครรอบขอบโต๊ะพอดีเป๊ะ
-    function renderTopDownSeats(players, activeIndex, isGameRunning) {
+    // เรนเดอร์ตัวละครและไพ่ข้างตัว (ไพ่คว่ำจะไม่ขึ้นจนกว่าจะแจกเสร็จจริง)
+    function renderTopDownSeats(players, activeIndex, isGameRunning, cardsDealt) {
       const c = document.getElementById('seatsContainer');
       c.innerHTML = '';
       const total = players.length;
@@ -1313,11 +1350,11 @@
         const perpX = -sinA;
         const perpY = cosA;
 
-        // ไพ่คว่ำ 2 ใบประจำตัววางข้างลำตัว
+        // วางไพ่คว่ำ 2 ใบข้างตัวละคร
         const cardLeft = charLeft - cosA * 5.0 + perpX * 4.5;
         const cardTop = charTop - sinA * 5.0 + perpY * 4.5;
 
-        // ชิปวางข้างลำตัวอีกฝั่ง
+        // วางชิปข้างตัวละครอีกฝั่ง
         const chipLeft = charLeft - cosA * 6.5 - perpX * 4.5;
         const chipTop = charTop - sinA * 6.5 - perpY * 4.5;
 
@@ -1336,8 +1373,8 @@
             </div>
           </div>
 
-          <!-- ไพ่คว่ำ 2 ใบประจำที่นั่ง (แสดงเฉพาะตอนเริ่มเกมแล้วเท่านั้น และคนนั้นไม่ได้รอเล่น) -->
-          ${(isGameRunning && !p.isWaiting) ? `
+          <!-- ไพ่คว่ำ 2 ใบ (แสดงเฉพาะเมื่อเริ่มเกมแล้ว + แจกไพ่เสร็จแล้ว + คนนั้นไม่ได้รอ) -->
+          ${(isGameRunning && cardsDealt && !p.isWaiting) ? `
             <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-0.5 z-20 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
               <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform -rotate-12"></div>
               <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform rotate-6"></div>
@@ -1373,7 +1410,6 @@
       socket.emit('game:start_click');
     };
 
-    // เทิร์นผู้เล่น: รีเซ็ตเวลาเต็ม 3 นาที (180 วินาที) และคว่ำไพ่กองกลาง
     socket.on('game:turn_start', ({ activeUsername, activeDisplayName, timeoutSec }) => {
       const isMe = activeUsername === currentUser.username;
       const targetName = activeDisplayName || activeUsername;
@@ -1411,7 +1447,6 @@
       setBettingControlsEnabled(false);
     };
 
-    // หงายไพ่กลางโต๊ะและไพ่ชนะเฉพาะเมื่อเดิมพันแล้ว
     socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount, potNow }) => {
       document.getElementById('hudPot').innerText = potNow.toLocaleString();
       document.getElementById('lblCenterPotText').innerText = potNow.toLocaleString();

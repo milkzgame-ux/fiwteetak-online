@@ -34,8 +34,7 @@ let USERS = {};
 function loadUsersDatabase() {
   try {
     if (fs.existsSync(DB_FILE)) {
-      const data = fs.readFileSync(DB_FILE, 'utf8');
-      USERS = JSON.parse(data);
+      USERS = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     } else {
       USERS = { ...DEFAULT_USERS };
       saveUsersDatabase();
@@ -53,7 +52,7 @@ function saveUsersDatabase() {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(USERS, null, 2), 'utf8');
   } catch (err) {
-    console.error('Error saving database:', err);
+    console.error('Save DB error:', err);
   }
 }
 
@@ -93,9 +92,8 @@ io.on('connection', (socket) => {
   let currentRoomId = null;
 
   socket.on('auth:register', ({ username, password }, cb) => {
-    if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
-    if (USERS[username]) return cb({ success: false, msg: 'ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว' });
-    
+    if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบ' });
+    if (USERS[username]) return cb({ success: false, msg: 'ชื่อผู้ใช้นี้มีในระบบแล้ว' });
     USERS[username] = {
       username,
       displayName: username,
@@ -115,7 +113,7 @@ io.on('connection', (socket) => {
   socket.on('auth:login', ({ username, password }, cb) => {
     const user = USERS[username];
     if (!user || user.password !== password) return cb({ success: false, msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
-    if (user.isBanned) return cb({ success: false, msg: 'บัญชีนี้ถูกระงับการใช้งาน' });
+    if (user.isBanned) return cb({ success: false, msg: 'บัญชีถูกระงับการใช้งาน' });
 
     if (ACTIVE_SESSIONS[username] && ACTIVE_SESSIONS[username] !== socket.id) {
       const oldSocket = io.sockets.sockets.get(ACTIVE_SESSIONS[username]);
@@ -131,7 +129,6 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(user) });
   });
 
-  // อัปเดตอวาตาร์และชื่อเล่น (Nickname / Display Name)
   socket.on('user:update_avatar', ({ avatar, displayName }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     if (avatar) USERS[currentAuthUser].avatar = avatar;
@@ -153,9 +150,9 @@ io.on('connection', (socket) => {
 
   socket.on('chat:global_send', ({ text }) => {
     if (!currentAuthUser || !text.trim()) return;
-    const senderName = USERS[currentAuthUser].displayName || currentAuthUser;
+    const sName = USERS[currentAuthUser].displayName || currentAuthUser;
     io.emit('chat:global_broadcast', {
-      sender: senderName,
+      sender: sName,
       text: text.trim().substring(0, 80),
       time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
     });
@@ -163,9 +160,9 @@ io.on('connection', (socket) => {
 
   socket.on('chat:room_send', ({ text }) => {
     if (!currentRoomId || !currentAuthUser || !text.trim()) return;
-    const senderName = USERS[currentAuthUser].displayName || currentAuthUser;
+    const sName = USERS[currentAuthUser].displayName || currentAuthUser;
     io.to(currentRoomId).emit('chat:room_broadcast', {
-      sender: senderName,
+      sender: sName,
       text: text.trim().substring(0, 50)
     });
   });
@@ -205,7 +202,7 @@ io.on('connection', (socket) => {
   socket.on('admin:mod_user', ({ targetUser, addChips, clearDebt, toggleBan }, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false });
     const u = USERS[targetUser];
-    if (!u) return cb({ success: false, msg: 'ไม่พบบัญชี' });
+    if (!u) return cb({ success: false, msg: 'ไม่พบผู้ใช้' });
     if (addChips) u.chips += Number(addChips);
     if (clearDebt) u.bankDebt = 0;
     if (toggleBan !== undefined) u.isBanned = toggleBan;
@@ -305,6 +302,7 @@ io.on('connection', (socket) => {
     checkAndCleanEmptyRoom(currentRoomId);
   });
 
+  // นั่งลงเล่น (ถ้าเกมรันอยู่ จะเข้าไปอยู่ใน waitingQueue รอ Pot = 0)
   socket.on('game:sit_down', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -317,12 +315,13 @@ io.on('connection', (socket) => {
       chips: USERS[currentAuthUser].chips,
       hand: [],
       avatar: USERS[currentAuthUser].avatar,
-      isWaiting: room.isGameRunning
+      isWaiting: room.isGameRunning,
+      lastBet: 0
     };
 
     if (room.isGameRunning) {
       room.waitingQueue.push(pObj);
-      socket.emit('game:msg', 'คุณกำลังรอรอบถัดไป (จะเข้าเล่นได้เมื่อ Pot กองกลางหมดเหลือ 0)');
+      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ตัวละครจะอยู่ในสถานะ "รอเล่น" จนกว่ากองกลาง (Pot) จะหมด');
     } else {
       room.players.push(pObj);
     }
@@ -336,12 +335,14 @@ io.on('connection', (socket) => {
 
     if (room.pot === 0 && room.waitingQueue.length > 0) {
       while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
-        room.players.push(room.waitingQueue.shift());
+        const waitingP = room.waitingQueue.shift();
+        waitingP.isWaiting = false;
+        room.players.push(waitingP);
       }
     }
 
     if (room.players.length < 2) {
-      return socket.emit('game:msg', '⚠️ ต้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปจึงจะสามารถเริ่มเล่นได้!');
+      return socket.emit('game:msg', '⚠️ ต้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปจึงจะเริ่มเกมได้!');
     }
 
     startNewGameRound(room);
@@ -391,13 +392,17 @@ function broadcastLobbyRooms() {
     code: r.code,
     name: r.name,
     host: r.host,
-    players: r.players.length + r.waitingQueue.length,
+    players: r.players.length + roomPlayersCount(r),
     maxPlayers: r.maxPlayers,
     hasPassword: !!r.password,
     pot: r.pot,
     isGameRunning: r.isGameRunning
   }));
   io.emit('lobby:rooms_update', roomList);
+}
+
+function roomPlayersCount(r) {
+  return r.waitingQueue ? r.waitingQueue.length : 0;
 }
 
 function joinRoomInternal(socket, roomCode, username) {
@@ -651,22 +656,39 @@ function handlePlayerLeave(socket, roomCode, username) {
 }
 
 function emitRoomState(room) {
+  // รวมผู้เล่นที่เล่นอยู่และผู้เล่นที่รอเข้าโต๊ะ (Waiting) เพื่อให้แสดงผลบนโต๊ะได้ครบทุกคน
+  const allSeatPlayers = [
+    ...room.players.map(p => ({
+      username: p.username,
+      displayName: p.displayName || p.username,
+      chips: p.chips,
+      cardCount: p.hand ? p.hand.length : 0,
+      hand: p.hand,
+      avatar: p.avatar,
+      isBot: p.isBot,
+      isWaiting: false,
+      lastBet: p.lastBet || 0
+    })),
+    ...room.waitingQueue.map(p => ({
+      username: p.username,
+      displayName: p.displayName || p.username,
+      chips: p.chips,
+      cardCount: 0,
+      hand: [],
+      avatar: p.avatar,
+      isBot: p.isBot,
+      isWaiting: true,
+      lastBet: 0
+    }))
+  ];
+
   io.to(room.code).emit('game:state_sync', {
     code: room.code,
     name: room.name,
     host: room.host,
     pot: room.pot,
     round: room.round,
-    players: room.players.map(p => ({
-      username: p.username,
-      displayName: p.displayName || p.username,
-      chips: p.chips,
-      cardCount: p.hand.length,
-      hand: p.hand,
-      avatar: p.avatar,
-      isBot: p.isBot,
-      lastBet: p.lastBet || 0
-    })),
+    players: allSeatPlayers,
     waitingCount: room.waitingQueue.length,
     spectators: room.spectators,
     activeTurnIndex: room.activeTurnIndex,
@@ -678,5 +700,5 @@ function emitRoomState(room) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running with nickname support on port ${PORT}`);
+  console.log(`Server online on port ${PORT}`);
 });

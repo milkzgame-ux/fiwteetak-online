@@ -18,12 +18,11 @@
     }
     .font-rye { font-family: 'Rye', cursive; }
     
-    /* โต๊ะสักหลาดคาวบอยทรงรีสีส้มอมทอง พร้อมขอบไม้แท้และเบาะขอบรอบโต๊ะแบบ Governor of Poker 3 */
     .poker-saloon-table {
       background: radial-gradient(ellipse at center, #ea580c 0%, #c2410c 60%, #7c2d12 100%);
       border: 18px solid #3e2213;
       border-radius: 220px;
-      box-shadow: inset 0 0 70px rgba(0,0,0,0.8), 0 12px 45px rgba(0,0,0,0.95);
+      box-shadow: inset 0 0 70px rgba(0,0,0,0.85), 0 12px 45px rgba(0,0,0,0.95);
       position: relative;
     }
     .table-wood-rim {
@@ -58,6 +57,27 @@
     .chip-stack {
       filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6));
     }
+
+    /* แอนิเมชันแจกไพ่พุ่งออกจากสำรับกลางโต๊ะ */
+    @keyframes dealFly {
+      0% {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.2) rotate(180deg);
+        opacity: 0;
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+    .animate-deal-card {
+      animation: dealFly 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
     .chat-bubble {
       animation: popIn 0.3s ease-out;
     }
@@ -154,16 +174,15 @@
       </div>
     </header>
 
-    <!-- Main Lobby Split: รายการห้อง (ซ้าย) + แชทกลาง (ขวา) -->
+    <!-- Main Lobby Split -->
     <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-3 overflow-hidden">
-      <!-- คอลัมน์ซ้าย: รายการห้อง + ช่องค้นหาด้วยเลขห้อง -->
+      <!-- คอลัมน์ซ้าย: รายการห้อง + ช่องค้นหาเลขห้อง -->
       <div class="lg:col-span-2 bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h2 class="text-sm font-bold text-amber-400 flex items-center gap-1.5">
             <i class="fa-solid fa-door-open"></i> รายการห้องเล่น Saloon
           </h2>
           
-          <!-- ช่องค้นหาด้วยเลขห้อง 6 หลัก -->
           <div class="flex items-center gap-1.5">
             <input type="text" id="inputSearchRoomCode" maxlength="6" class="w-24 bg-stone-950 border border-stone-700 rounded px-2 py-1 text-center font-bold text-amber-400 text-xs focus:outline-none" placeholder="เลขห้อง 6 หลัก">
             <button id="btnJoinByCode" class="bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-200 px-2.5 py-1 rounded text-xs font-bold">
@@ -178,7 +197,7 @@
         <div id="listRooms" class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2.5 pr-1 custom-scrollbar"></div>
       </div>
 
-      <!-- คอลัมน์ขวา: ระบบแชทกลาง (Global Lobby Chat) -->
+      <!-- คอลัมน์ขวา: แชทกลางล็อบบี้ -->
       <div class="bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
         <h3 class="text-xs font-bold text-amber-400 border-b border-stone-800 pb-2 mb-2 flex items-center gap-1.5">
           <i class="fa-solid fa-comments"></i> แชทกลางล็อบบี้ (Global Chat)
@@ -192,7 +211,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL แต่งตัวคาวบอย ================= -->
+  <!-- ================= MODAL แต่งตัวคาวบอย (7 สไตล์หมวก + 12 โทนสี) ================= -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -206,33 +225,43 @@
         <div id="wardrobeBigPreview" class="w-28 h-28 rounded-full border-2 border-amber-500 bg-amber-950/40 p-2 shadow-inner flex items-center justify-center"></div>
       </div>
 
-      <div class="space-y-2.5 text-xs">
+      <div class="space-y-3 text-xs">
         <div>
-          <label class="block text-stone-300 mb-1">สไตล์หมวกคาวบอย</label>
+          <label class="block text-stone-300 mb-1">สไตล์หมวกคาวบอย (7 แบบ)</label>
           <select id="selHatStyle" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-white">
-            <option value="cattleman">Cattleman (ปีกโค้งคลาสสิก)</option>
-            <option value="sombrero">Sombrero (ปีกกว้างลายถัก)</option>
-            <option value="gambler">Gambler (ทรงแบนลายไพ่)</option>
-            <option value="derby">Derby (โบว์เลอร์ขอบมน)</option>
+            <option value="cattleman">Cattleman (ปีกโค้งคลาสสิก ดั้งเดิม)</option>
+            <option value="sombrero">Sombrero (ปีกกว้างลายถัก แม็กซิกัน)</option>
+            <option value="gambler">Gambler (ทรงแบนลายไพ่ นักเสี่ยงโชค)</option>
+            <option value="derby">Derby (โบว์เลอร์ขอบมน นายอำเภอ)</option>
+            <option value="outback">Outback (หมวกปีกกว้างทรงออสเตรเลีย)</option>
+            <option value="bowler">Bowler (ทรงกลมสุภาพบุรุษ)</option>
+            <option value="fedora">Fedora (เฟโดรานักสืบยุคคาวบอย)</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-stone-300 mb-1">สีหมวก</label>
-          <div class="flex gap-2">
-            <button onclick="setWardrobeColor('#4a2e18')" class="w-7 h-7 rounded-full bg-[#4a2e18] border border-amber-400"></button>
-            <button onclick="setWardrobeColor('#1c1917')" class="w-7 h-7 rounded-full bg-[#1c1917] border border-stone-500"></button>
-            <button onclick="setWardrobeColor('#881337')" class="w-7 h-7 rounded-full bg-[#881337] border border-stone-500"></button>
-            <button onclick="setWardrobeColor('#ca8a04')" class="w-7 h-7 rounded-full bg-[#ca8a04] border border-stone-500"></button>
-            <button onclick="setWardrobeColor('#047857')" class="w-7 h-7 rounded-full bg-[#047857] border border-stone-500"></button>
+          <label class="block text-stone-300 mb-1">เฉดสีหมวก (12 สีพิเศษ)</label>
+          <div class="grid grid-cols-6 gap-2">
+            <button onclick="setWardrobeColor('#4a2e18')" title="หนังคลาสสิก" class="w-7 h-7 rounded-full bg-[#4a2e18] border border-amber-400 shadow"></button>
+            <button onclick="setWardrobeColor('#1c1917')" title="ดำสนิท" class="w-7 h-7 rounded-full bg-[#1c1917] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#881337')" title="เลือดหมู" class="w-7 h-7 rounded-full bg-[#881337] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#ca8a04')" title="ทองอำพัน" class="w-7 h-7 rounded-full bg-[#ca8a04] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#047857')" title="เขียวป่าลึก" class="w-7 h-7 rounded-full bg-[#047857] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#f5f5f4')" title="ขาวนวล" class="w-7 h-7 rounded-full bg-[#f5f5f4] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#1e3a8a')" title="กรมท่าคาวบอย" class="w-7 h-7 rounded-full bg-[#1e3a8a] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#581c87')" title="ม่วงไวโอเล็ต" class="w-7 h-7 rounded-full bg-[#581c87] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#713f12')" title="ช็อกโกแลต" class="w-7 h-7 rounded-full bg-[#713f12] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#ea580c')" title="ส้มสนิม" class="w-7 h-7 rounded-full bg-[#ea580c] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#475569')" title="เทากราไฟต์" class="w-7 h-7 rounded-full bg-[#475569] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#dc2626')" title="แดงคริมสัน" class="w-7 h-7 rounded-full bg-[#dc2626] border border-stone-600 shadow"></button>
           </div>
         </div>
 
         <div>
-          <label class="block text-stone-300 mb-1">ตราประดับหมวก (Hat Badge)</label>
+          <label class="block text-stone-300 mb-1">ตราประดับหมวก (Badge)</label>
           <select id="selHatBadge" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-white">
-            <option value="star">ดาวนายอำเภอ (Sheriff Star)</option>
-            <option value="feather">ขนนกอินทรี (Feather)</option>
+            <option value="star">ดาวนายอำเภอทอง (Sheriff Star)</option>
+            <option value="feather">ขนนกอินทรีแดง (Feather)</option>
             <option value="cards">ไพ่เอซโพดำ (Ace Card)</option>
             <option value="cross">เข็มกลัดกระสุนทอง (Gold Pin)</option>
           </select>
@@ -295,8 +324,8 @@
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">รูปแบบห้อง</label>
           <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
-            <option value="bot">เติมบอทอัตโนมัติ</option>
-            <option value="human">เล่นกับคนเท่านั้น</option>
+            <option value="bot">เติมบอทอัตโนมัติ (เริ่มได้ทันที)</option>
+            <option value="human">เล่นกับคนเท่านั้น (รอคนครบ 2 คน)</option>
           </select>
         </div>
       </div>
@@ -340,18 +369,16 @@
     </div>
   </div>
 
-  <!-- ================= MODAL ไพ่ที่ออก ================= -->
+  <!-- ================= MODAL ประวัติแบบรอบต่อรอบ (ROUND-BY-ROUND HISTORY) ================= -->
   <div id="modalHistory" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
-    <div class="w-full max-w-md bg-stone-900 border border-amber-600 rounded-2xl p-4 shadow-2xl flex flex-col max-h-[80vh]">
+    <div class="w-full max-w-lg bg-stone-900 border border-amber-600 rounded-2xl p-4 shadow-2xl flex flex-col max-h-[82vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
-        <h3 class="text-sm font-bold text-amber-400"><i class="fa-solid fa-scroll"></i> ประวัติไพ่ที่ออกแล้ว</h3>
+        <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-scroll"></i> ประวัติผลการเล่นรอบต่อรอบ
+        </h3>
         <button id="btnCloseHistory" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="flex border-b border-stone-800 mb-2 text-xs">
-        <button id="tabHistComm" class="flex-1 py-1 font-bold text-amber-400 border-b-2 border-amber-500">ไพ่กองกลาง</button>
-        <button id="tabHistWins" class="flex-1 py-1 font-bold text-stone-400">ไพ่ที่ชนะเดิมพัน</button>
-      </div>
-      <div id="boxHistContent" class="flex-1 overflow-y-auto space-y-1.5 pr-1 text-xs custom-scrollbar"></div>
+      <div id="boxHistContent" class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs custom-scrollbar"></div>
     </div>
   </div>
 
@@ -380,22 +407,29 @@
 
       <div class="flex items-center gap-1.5">
         <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60">
-          <i class="fa-solid fa-scroll"></i> ไพ่ที่ออก
+          <i class="fa-solid fa-scroll"></i> ประวัติรอบ
         </button>
       </div>
     </div>
 
-    <!-- The Poker Felt Table & Top-Down Seats Area -->
+    <!-- Table Felt & Top-Down Seats Area -->
     <div class="table-wood-rim relative flex-1 my-1 flex items-center justify-center">
       <div class="poker-saloon-table w-full h-full flex items-center justify-center overflow-hidden">
         
         <div class="absolute text-center opacity-15 pointer-events-none">
           <div class="text-6xl font-rye text-amber-950">FiwTeeTak</div>
-          <div class="text-[10px] uppercase font-bold tracking-widest text-amber-900">Classic Saloon Table</div>
+          <div class="text-[10px] uppercase font-bold tracking-widest text-amber-900">Saloon Poker Table</div>
+        </div>
+
+        <!-- สำรับไพ่กลางโต๊ะสำหรับสร้างแอนิเมชันแจกไพ่ -->
+        <div id="deckCenterPile" class="absolute top-[28%] z-15 flex flex-col items-center pointer-events-none">
+          <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl relative">
+            <div class="absolute inset-0 flex items-center justify-center text-blue-200 opacity-60 text-xs font-bold">♠</div>
+          </div>
         </div>
 
         <!-- ชิป POT กลางโต๊ะ -->
-        <div class="absolute top-[32%] flex flex-col items-center pointer-events-none z-10">
+        <div class="absolute top-[37%] flex flex-col items-center pointer-events-none z-10">
           <div class="flex items-center gap-1.5 bg-black/50 border border-amber-500/50 px-3 py-0.5 rounded-full shadow-lg">
             <i class="fa-solid fa-circle-dot text-amber-400 text-[10px] animate-spin"></i>
             <span id="lblCenterPotText" class="text-xs font-black text-amber-300 font-rye">0</span>
@@ -403,7 +437,7 @@
         </div>
 
         <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
-        <div class="relative z-30 flex flex-col items-center">
+        <div class="relative z-30 flex flex-col items-center mt-6">
           <div id="boxShowcase" class="flex items-center gap-5 mb-1 min-h-[85px]">
             <div class="flex flex-col items-center">
               <span class="text-[10px] text-amber-100 font-bold mb-0.5 drop-shadow">ไพ่กองกลาง</span>
@@ -425,14 +459,17 @@
         <!-- ที่นั่งตัวละครรอบโต๊ะ -->
         <div id="seatsContainer" class="absolute inset-0 pointer-events-none"></div>
 
-        <!-- ปุ่มเปิด/ปิด หน้าต่างแชทในห้อง (มุมล่างซ้ายบนโต๊ะ) -->
+        <!-- เลเยอร์อนิเมชันแจกไพ่ -->
+        <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-35"></div>
+
+        <!-- ปุ่มเปิด/ปิด หน้าต่างแชทในห้อง -->
         <div class="absolute bottom-3 left-4 z-40 pointer-events-auto">
           <button id="btnToggleRoomChat" class="bg-stone-950/80 hover:bg-stone-900 border border-amber-600/60 text-amber-400 w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition">
             <i class="fa-solid fa-comment-dots text-sm"></i>
           </button>
         </div>
 
-        <!-- กล่องแชทห้องแบบ Pop-up[cite: 13] -->
+        <!-- กล่องแชทห้อง Pop-up -->
         <div id="boxRoomChatPopup" class="hidden absolute bottom-14 left-4 z-50 w-64 bg-stone-950/95 border border-amber-800 rounded-xl p-2.5 shadow-2xl flex flex-col pointer-events-auto text-xs">
           <div class="flex justify-between items-center border-b border-stone-800 pb-1.5 mb-2">
             <span class="font-bold text-amber-400"><i class="fa-solid fa-comments"></i> แชทในโต๊ะ</span>
@@ -490,7 +527,7 @@
     const modalHistory = document.getElementById('modalHistory');
     const btnAdminPanel = document.getElementById('btnAdminPanel');
 
-    // === TOP-DOWN 3D PERSPECTIVE COWBOY AVATAR ENGINE (แขน 2 ข้างวางขอบโต๊ะสักหลาดแบบ Governor of Poker 3)[cite: 13] ===
+    // === TOP-DOWN COWBOY ENGINE (7 สไตล์หมวกสมจริง)[cite: 13] ===
     function generateTopDownCowboySVG(avatar = {}, isTurn = false, isMe = false) {
       const hat = avatar.hatStyle || 'cattleman';
       const hatCol = avatar.hatColor || '#4a2e18';
@@ -515,7 +552,21 @@
         hatBrim = `<ellipse cx="40" cy="40" rx="32" ry="27" fill="${hatCol}"/>`;
         hatCrown = `<ellipse cx="40" cy="39" rx="18" ry="15" fill="${hatCol}" filter="drop-shadow(0 3px 6px rgba(0,0,0,0.7))"/>
                     <ellipse cx="40" cy="39" rx="12" ry="9" fill="#1c1917"/>`;
-      } else { // Cattleman Classic
+      } else if (hat === 'outback') {
+        hatBrim = `<ellipse cx="40" cy="40" rx="37" ry="29" fill="${hatCol}" stroke="#451a03" stroke-width="2"/>
+                   <path d="M12 40 Q40 33 68 40" stroke="#ca8a04" stroke-width="2" fill="none"/>`;
+        hatCrown = `<ellipse cx="40" cy="40" rx="16" ry="13" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/>
+                    <line x1="28" y1="40" x2="52" y2="40" stroke="#ca8a04" stroke-width="2"/>`;
+      } else if (hat === 'bowler') {
+        hatBrim = `<circle cx="40" cy="40" r="30" fill="${hatCol}" stroke="#0f172a" stroke-width="2"/>`;
+        hatCrown = `<circle cx="40" cy="40" r="18" fill="${hatCol}" filter="drop-shadow(0 4px 5px rgba(0,0,0,0.8))"/>
+                    <circle cx="40" cy="40" r="14" fill="#1e293b"/>`;
+      } else if (hat === 'fedora') {
+        hatBrim = `<ellipse cx="40" cy="40" rx="33" ry="26" fill="${hatCol}" stroke="#1e293b" stroke-width="1.5"/>`;
+        hatCrown = `<ellipse cx="40" cy="39" rx="16" ry="12" fill="${hatCol}" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.7))"/>
+                    <path d="M40 32 L40 46" stroke="#0f172a" stroke-width="2"/>
+                    <line x1="24" y1="39" x2="56" y2="39" stroke="#991b1b" stroke-width="2.5"/>`;
+      } else { // cattleman
         hatBrim = `<ellipse cx="40" cy="40" rx="35" ry="28" fill="${hatCol}" stroke="#27150c" stroke-width="1.5"/>
                    <path d="M10 40 Q40 31 70 40" stroke="#170c06" stroke-width="2.5" fill="none"/>`;
         hatCrown = `<ellipse cx="40" cy="40" rx="15" ry="15" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/>
@@ -535,24 +586,22 @@
       return `
         <div class="relative flex flex-col items-center">
           <svg viewBox="0 0 80 80" width="76" height="76" class="overflow-visible">
-            <!-- ไหล่ 2 ข้าง -->
             <ellipse cx="40" cy="55" rx="30" ry="13" fill="${sleeve}"/>
 
-            <!-- แขนซ้าย + มือซ้ายวางเท้าขอบโต๊ะ[cite: 13] -->
+            <!-- แขนซ้ายและมือเท้าขอบโต๊ะ[cite: 13] -->
             <path d="M14 50 Q8 40 16 28" stroke="${sleeve}" stroke-width="8" stroke-linecap="round" fill="none"/>
             <ellipse cx="16" cy="26" rx="6" ry="5" fill="${skin}" class="hands-on-felt"/>
             <circle cx="13" cy="23" r="1.8" fill="${skin}"/>
             <circle cx="17" cy="22" r="1.8" fill="${skin}"/>
             <circle cx="21" cy="23" r="1.8" fill="${skin}"/>
 
-            <!-- แขนขวา + มือขวาวางเท้าขอบโต๊ะ[cite: 13] -->
+            <!-- แขนขวาและมือเท้าขอบโต๊ะ[cite: 13] -->
             <path d="M66 50 Q72 40 64 28" stroke="${sleeve}" stroke-width="8" stroke-linecap="round" fill="none"/>
             <ellipse cx="64" cy="26" rx="6" ry="5" fill="${skin}" class="hands-on-felt"/>
             <circle cx="59" cy="23" r="1.8" fill="${skin}"/>
             <circle cx="63" cy="22" r="1.8" fill="${skin}"/>
             <circle cx="67" cy="23" r="1.8" fill="${skin}"/>
 
-            <!-- ปีกหมวก & ตัวหมวก Top-Down[cite: 13] -->
             ${hatBrim}
             ${hatCrown}
             ${badgeElement}
@@ -616,7 +665,6 @@
       }
     }
 
-    // Force Logout
     socket.on('auth:force_logout', ({ msg }) => {
       alert(msg || 'บัญชีของคุณถูกเข้าสู่ระบบจากเครื่องอื่น!');
       currentUser = null;
@@ -631,7 +679,7 @@
       screenAuth.classList.remove('hidden');
     });
 
-    // === แชทกลางล็อบบี้ (GLOBAL CHAT) ===
+    // Global Chat
     document.getElementById('btnSendGlobalChat').onclick = sendGlobalMessage;
     document.getElementById('inputGlobalChat').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') sendGlobalMessage();
@@ -661,7 +709,7 @@
       box.scrollTop = box.scrollHeight;
     });
 
-    // === แชทในห้องเกม (ROOM CHAT)[cite: 13] ===
+    // Room Chat
     document.getElementById('btnToggleRoomChat').onclick = () => {
       document.getElementById('boxRoomChatPopup').classList.toggle('hidden');
     };
@@ -682,14 +730,11 @@
     }
 
     socket.on('chat:room_broadcast', ({ sender, text }) => {
-      // 1. เพิ่มลงในกล่องข้อความแชท
       const list = document.getElementById('listRoomMessages');
       if (list) {
         list.innerHTML += `<div><b class="text-amber-400">${sender}:</b> <span class="text-stone-200">${text}</span></div>`;
         list.scrollTop = list.scrollHeight;
       }
-
-      // 2. แสดง Bubble ลอยเหนือตัวละครบนโต๊ะ
       const bubble = document.getElementById(`bubble_${sender}`);
       if (bubble) {
         bubble.innerText = text;
@@ -698,7 +743,7 @@
       }
     });
 
-    // === WARDROBE SYSTEM ===
+    // Wardrobe System
     document.getElementById('btnOpenWardrobe').onclick = () => {
       const av = currentUser.avatar || {};
       document.getElementById('selHatStyle').value = av.hatStyle || 'cattleman';
@@ -846,7 +891,6 @@
       });
     };
 
-    // เข้าร่วมด้วยการกดปุ่มค้นหาเลขห้อง 6 หลัก
     document.getElementById('btnJoinByCode').onclick = () => {
       const code = document.getElementById('inputSearchRoomCode').value.trim();
       if (!code || code.length !== 6) return alert('กรุณากรอกเลขห้อง 6 หลักให้ถูกต้อง');
@@ -941,6 +985,32 @@
       renderTopDownSeats(state.players, state.activeTurnIndex);
     });
 
+    // แอนิเมชันแจกไพ่พุ่งออกจากสำรับกลางโต๊ะ
+    socket.on('game:dealing_cards', () => {
+      const layer = document.getElementById('dealAnimationLayer');
+      layer.innerHTML = '';
+
+      if (!currentRoomState || !currentRoomState.players) return;
+      const total = currentRoomState.players.length;
+
+      currentRoomState.players.forEach((p, idx) => {
+        const angle = (idx / total) * 2 * Math.PI + Math.PI / 2;
+        const targetLeft = 50 + 31 * Math.cos(angle);
+        const targetTop = 50 + 26 * Math.sin(angle);
+
+        const card = document.createElement('div');
+        card.className = 'absolute w-5 h-7 bg-blue-800 border border-blue-400 rounded-sm shadow-xl animate-deal-card';
+        card.style.left = `${targetLeft}%`;
+        card.style.top = `${targetTop}%`;
+        card.style.animationDelay = `${idx * 0.12}s`;
+        layer.appendChild(card);
+      });
+
+      setTimeout(() => {
+        layer.innerHTML = '';
+      }, 1600);
+    });
+
     function checkPlayerTurnLock(state) {
       if (!state.isGameRunning) {
         setBettingControlsEnabled(false);
@@ -958,7 +1028,7 @@
       input.disabled = !enabled;
     }
 
-    // เรนเดอร์ตัวละครพร้อมไพ่คว่ำประจำที่นั่งตามภาพต้นแบบ[cite: 13]
+    // เรนเดอร์ตัวละครพร้อมจัดวางตำแหน่งไพ่คว่ำบนสักหลาดให้สวยงาม ไม่ทับตัวละคร[cite: 13]
     function renderTopDownSeats(players, activeIndex) {
       const c = document.getElementById('seatsContainer');
       c.innerHTML = '';
@@ -979,38 +1049,36 @@
         const left = 50 + rx * Math.cos(angle);
         const top = 50 + ry * Math.sin(angle);
 
-        // ไพ่คว่ำ 2 ใบประจำที่นั่งวางเฉียงบนโต๊ะตามแบบโป๊กเกอร์[cite: 13]
-        const cardLeft = 50 + (rx - 10) * Math.cos(angle);
-        const cardTop = 50 + (ry - 8) * Math.sin(angle);
+        // วางไพ่คว่ำ 2 ใบให้เยื้องเข้าไปด้านในโต๊ะสักหลาดอย่างพอเหมาะ[cite: 13]
+        const cardLeft = 50 + (rx - 14) * Math.cos(angle);
+        const cardTop = 50 + (ry - 12) * Math.sin(angle);
 
-        // ชิปเดิมพันวางยื่นเข้าไปในสักหลาด[cite: 13]
-        const chipLeft = 50 + (rx - 17) * Math.cos(angle);
-        const chipTop = 50 + (ry - 14) * Math.sin(angle);
+        // วางชิปเดิมพันเยื้องเข้าไปข้างในโต๊ะ[cite: 13]
+        const chipLeft = 50 + (rx - 21) * Math.cos(angle);
+        const chipTop = 50 + (ry - 18) * Math.sin(angle);
 
         c.innerHTML += `
-          <!-- ตัวละคร Top-Down พร้อมมือวางเท้าขอบโต๊ะ[cite: 13] -->
+          <!-- ตัวละคร Top-Down[cite: 13] -->
           <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto z-20" style="left: ${left}%; top: ${top}%;">
-            <!-- กล่องแชทข้อความลอย[cite: 13] -->
             <div id="bubble_${p.username}" class="hidden chat-bubble bg-amber-400 text-stone-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-lg border border-amber-600 mb-1 z-30 whitespace-nowrap"></div>
 
             ${generateTopDownCowboySVG(p.avatar, isTurn, isMe)}
             
-            <!-- ป้ายชื่อ เลเวล และเหรียญใต้ตัวละครตามสไตล์ Governor of Poker 3[cite: 13] -->
             <div class="bg-stone-950/95 border ${isTurn ? 'border-amber-400 gold-glow' : 'border-stone-700'} px-2 py-0.5 rounded-lg text-center shadow-xl -mt-2 min-w-[76px]">
               <div class="text-[10px] font-black text-amber-200 truncate max-w-[85px]">${p.username}</div>
               <div class="text-[9px] text-amber-400 font-bold">${p.chips.toLocaleString()} 🪙</div>
             </div>
           </div>
 
-          <!-- ไพ่คว่ำวางประจำที่นั่ง[cite: 13] -->
-          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-0.5 z-10 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
-            <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-900 border border-blue-400 rounded-sm shadow-md transform -rotate-12"></div>
-            <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-900 border border-blue-400 rounded-sm shadow-md transform rotate-6"></div>
+          <!-- ไพ่คว่ำ 2 ใบประจำที่นั่งบนสักหลาด[cite: 13] -->
+          <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex gap-1 z-10 pointer-events-none" style="left: ${cardLeft}%; top: ${cardTop}%;">
+            <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform -rotate-12"></div>
+            <div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md transform rotate-6"></div>
           </div>
 
-          <!-- กองชิปเดิมพันวางยื่นเข้าไปในโต๊ะ[cite: 13] -->
+          <!-- กองชิปเดิมพันหน้าผู้เล่น[cite: 13] -->
           ${p.lastBet > 0 ? `
-            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 chip-stack flex items-center gap-1 bg-black/70 border border-amber-500/80 px-2 py-0.5 rounded-full z-15" style="left: ${chipLeft}%; top: ${chipTop}%;">
+            <div class="absolute transform -translate-x-1/2 -translate-y-1/2 chip-stack flex items-center gap-1 bg-black/75 border border-amber-500/80 px-2 py-0.5 rounded-full z-15" style="left: ${chipLeft}%; top: ${chipTop}%;">
               <i class="fa-solid fa-coins text-amber-400 text-[10px]"></i>
               <span class="text-[10px] font-black text-amber-300 font-rye">${p.lastBet.toLocaleString()}</span>
             </div>
@@ -1021,7 +1089,14 @@
 
     socket.on('game:need_start_click', (msg) => {
       document.getElementById('txtGameStatus').innerText = msg;
-      document.getElementById('btnStartGameAction').classList.remove('hidden');
+      
+      // ตรวจสอบว่าในห้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปหรือไม่
+      const playerCount = currentRoomState && currentRoomState.players ? currentRoomState.players.length : 0;
+      if (playerCount >= 2) {
+        document.getElementById('btnStartGameAction').classList.remove('hidden');
+      } else {
+        document.getElementById('btnStartGameAction').classList.add('hidden');
+      }
       setBettingControlsEnabled(false);
     });
 
@@ -1092,54 +1167,52 @@
 
     socket.on('game:msg', (msg) => alert(msg));
 
-    // === CARD HISTORY TRACKER MODAL ===
+    // === ประวัติแบบรอบต่อรอบ (ROUND-BY-ROUND MODAL) ===
     document.getElementById('btnHistory').onclick = () => {
-      renderHistoryModal('comm');
+      renderRoundHistoryModal();
       modalHistory.classList.remove('hidden');
     };
     document.getElementById('btnCloseHistory').onclick = () => modalHistory.classList.add('hidden');
 
-    document.getElementById('tabHistComm').onclick = () => {
-      document.getElementById('tabHistComm').className = "flex-1 py-1 font-bold text-amber-400 border-b-2 border-amber-500";
-      document.getElementById('tabHistWins').className = "flex-1 py-1 font-bold text-stone-400";
-      renderHistoryModal('comm');
-    };
-    document.getElementById('tabHistWins').onclick = () => {
-      document.getElementById('tabHistWins').className = "flex-1 py-1 font-bold text-amber-400 border-b-2 border-amber-500";
-      document.getElementById('tabHistComm').className = "flex-1 py-1 font-bold text-stone-400";
-      renderHistoryModal('wins');
-    };
-
-    function renderHistoryModal(tab) {
+    function renderRoundHistoryModal() {
       const box = document.getElementById('boxHistContent');
-      if (!currentRoomState) return;
-
-      if (tab === 'comm') {
-        const list = currentRoomState.historyCards || [];
-        if (list.length === 0) return box.innerHTML = '<div class="text-center text-stone-500 py-4">ยังไม่มีไพ่กองกลางที่เปิด</div>';
-        box.innerHTML = list.map(item => `
-          <div class="bg-stone-800 p-2 rounded flex justify-between items-center">
-            <span class="text-stone-300">รอบ #${item.round} (เปิดโดย ${item.by})</span>
-            <span class="font-bold text-sm ${item.card.color === 'red' ? 'text-rose-400' : 'text-stone-200'}">${item.card.rank}${item.card.suit}</span>
-          </div>
-        `).join('');
-      } else {
-        const list = currentRoomState.winningHistory || [];
-        if (list.length === 0) return box.innerHTML = '<div class="text-center text-stone-500 py-4">ยังไม่มีประวัติไพ่ที่ชนะ</div>';
-        box.innerHTML = list.map(item => `
-          <div class="bg-stone-800 p-2 rounded flex justify-between items-center">
-            <div>
-              <div class="font-bold text-amber-400">${item.winner} ชนะ +${item.amount.toLocaleString()} 🪙</div>
-              <div class="text-[10px] text-stone-400">รอบ #${item.round}</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold ${item.winningCard.color === 'red' ? 'text-rose-400' : 'text-stone-200'}">${item.winningCard.rank}${item.winningCard.suit}</span>
-              <span class="text-stone-500">></span>
-              <span class="text-stone-400">${item.communityCard.rank}${item.communityCard.suit}</span>
-            </div>
-          </div>
-        `).join('');
+      if (!currentRoomState || !currentRoomState.roundHistory || currentRoomState.roundHistory.length === 0) {
+        box.innerHTML = '<div class="text-center text-stone-500 py-6">ยังไม่มีประวัติการประลองในห้องนี้</div>';
+        return;
       }
+
+      box.innerHTML = currentRoomState.roundHistory.map(item => `
+        <div class="bg-stone-950 p-3 rounded-xl border ${item.isWin ? 'border-amber-600/60' : 'border-stone-800'} space-y-1.5 shadow">
+          <div class="flex justify-between items-center border-b border-stone-800 pb-1">
+            <span class="font-bold text-amber-400">รอบที่ #${item.round}</span>
+            <span class="text-[10px] text-stone-500">${item.timestamp}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-stone-300 font-bold">${item.player}</span>
+              <span class="text-stone-400 ml-1">วางเดิมพัน: <b>${item.betAmount.toLocaleString()}</b> 🪙</span>
+            </div>
+            <div class="font-bold ${item.isWin ? 'text-emerald-400' : 'text-rose-400'}">
+              ${item.isWin ? `+${(item.betAmount * 2).toLocaleString()} 🪙 (ชนะ)` : `-${item.betAmount.toLocaleString()} 🪙 (แพ้)`}
+            </div>
+          </div>
+          <div class="flex items-center justify-between bg-stone-900/80 px-2.5 py-1 rounded text-[11px]">
+            <div class="flex items-center gap-1.5">
+              <span class="text-stone-400">ไพ่กลาง:</span>
+              <b class="${item.communityCard.color === 'red' ? 'text-rose-400' : 'text-stone-200'}">${item.communityCard.rank}${item.communityCard.suit}</b>
+            </div>
+            ${item.isWin && item.winningCard ? `
+              <div class="flex items-center gap-1.5">
+                <span class="text-amber-400">ไพ่ที่ชนะ:</span>
+                <b class="${item.winningCard.color === 'red' ? 'text-rose-400' : 'text-stone-200'}">${item.winningCard.rank}${item.winningCard.suit}</b>
+              </div>
+            ` : '<span class="text-stone-500">ไม่มีไพ่ชนะแต้ม</span>'}
+            <div class="text-stone-400">
+              POT คงเหลือ: <b class="text-amber-300">${item.potRemaining.toLocaleString()}</b>
+            </div>
+          </div>
+        </div>
+      `).join('');
     }
   </script>
 </body>

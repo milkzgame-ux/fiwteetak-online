@@ -17,6 +17,7 @@ const DB_FILE = path.join(__dirname, 'users_db.json');
 const DEFAULT_USERS = {
   "admin": {
     username: "admin",
+    displayName: "Admin Sheriff",
     password: "admin052063",
     role: "admin",
     chips: 100000,
@@ -97,6 +98,7 @@ io.on('connection', (socket) => {
     
     USERS[username] = {
       username,
+      displayName: username,
       password,
       role: 'player',
       chips: 2000,
@@ -129,23 +131,31 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(user) });
   });
 
-  socket.on('user:update_avatar', ({ avatar }, cb) => {
+  // อัปเดตอวาตาร์และชื่อเล่น (Nickname / Display Name)
+  socket.on('user:update_avatar', ({ avatar, displayName }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
-    USERS[currentAuthUser].avatar = avatar;
+    if (avatar) USERS[currentAuthUser].avatar = avatar;
+    if (displayName && displayName.trim()) {
+      USERS[currentAuthUser].displayName = displayName.trim().substring(0, 16);
+    }
     saveUsersDatabase();
 
     if (currentRoomId && ROOMS[currentRoomId]) {
       const p = ROOMS[currentRoomId].players.find(x => x.username === currentAuthUser);
-      if (p) p.avatar = avatar;
+      if (p) {
+        if (avatar) p.avatar = avatar;
+        if (displayName) p.displayName = USERS[currentAuthUser].displayName;
+      }
       emitRoomState(ROOMS[currentRoomId]);
     }
-    cb({ success: true, avatar });
+    cb({ success: true, user: sanitizeUser(USERS[currentAuthUser]) });
   });
 
   socket.on('chat:global_send', ({ text }) => {
     if (!currentAuthUser || !text.trim()) return;
+    const senderName = USERS[currentAuthUser].displayName || currentAuthUser;
     io.emit('chat:global_broadcast', {
-      sender: currentAuthUser,
+      sender: senderName,
       text: text.trim().substring(0, 80),
       time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
     });
@@ -153,8 +163,9 @@ io.on('connection', (socket) => {
 
   socket.on('chat:room_send', ({ text }) => {
     if (!currentRoomId || !currentAuthUser || !text.trim()) return;
+    const senderName = USERS[currentAuthUser].displayName || currentAuthUser;
     io.to(currentRoomId).emit('chat:room_broadcast', {
-      sender: currentAuthUser,
+      sender: senderName,
       text: text.trim().substring(0, 50)
     });
   });
@@ -246,7 +257,7 @@ io.on('connection', (socket) => {
       activeTurnIndex: 0,
       dealerIndex: 0,
       isGameRunning: false,
-      roundHistory: [], // เก็บประวัติแบบรอบต่อรอบ
+      roundHistory: [],
       timer: null
     };
 
@@ -302,6 +313,7 @@ io.on('connection', (socket) => {
     room.spectators = room.spectators.filter(u => u !== currentAuthUser);
     const pObj = {
       username: currentAuthUser,
+      displayName: USERS[currentAuthUser].displayName || currentAuthUser,
       chips: USERS[currentAuthUser].chips,
       hand: [],
       avatar: USERS[currentAuthUser].avatar,
@@ -318,7 +330,6 @@ io.on('connection', (socket) => {
     emitRoomState(room);
   });
 
-  // กฎบังคับ: ต้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปจึงจะกดเริ่มเกมได้
   socket.on('game:start_click', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -329,8 +340,7 @@ io.on('connection', (socket) => {
       }
     }
 
-    const totalActive = room.players.length;
-    if (totalActive < 2) {
+    if (room.players.length < 2) {
       return socket.emit('game:msg', '⚠️ ต้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปจึงจะสามารถเริ่มเล่นได้!');
     }
 
@@ -366,6 +376,7 @@ io.on('connection', (socket) => {
 function sanitizeUser(u) {
   return {
     username: u.username,
+    displayName: u.displayName || u.username,
     role: u.role,
     chips: u.chips,
     bankSavings: u.bankSavings,
@@ -395,6 +406,7 @@ function joinRoomInternal(socket, roomCode, username) {
 
   const playerObj = {
     username,
+    displayName: USERS[username].displayName || username,
     chips: USERS[username].chips,
     hand: [],
     avatar: USERS[username].avatar || { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' },
@@ -416,6 +428,7 @@ function joinRoomInternal(socket, roomCode, username) {
       const bName = `${bData.name}_${Math.floor(Math.random()*90+10)}`;
       room.players.push({
         username: bName,
+        displayName: bName,
         chips: 2000,
         hand: [],
         avatar: { hatStyle: bData.hat, hatColor: bData.hatColor, skinTone: bData.skin, sleeveColor: bData.sleeve, badge: bData.badge },
@@ -458,10 +471,7 @@ function startNewGameRound(room) {
   });
 
   room.activeTurnIndex = room.dealerIndex;
-  
-  // แจ้งเตือนแอนิเมชันแจกไพ่ไปยังทุกหน้าจอ
   io.to(room.code).emit('game:dealing_cards');
-
   emitRoomState(room);
   startTurnTimer(room);
 }
@@ -471,8 +481,10 @@ function startTurnTimer(room) {
   const currentP = room.players[room.activeTurnIndex];
   if (!currentP) return;
 
+  const currentDisplayName = currentP.displayName || currentP.username;
   io.to(room.code).emit('game:turn_start', {
     activeUsername: currentP.username,
+    activeDisplayName: currentDisplayName,
     timeoutSec: 20
   });
 
@@ -522,10 +534,10 @@ function processPlayerBet(room, player, amount) {
     room.pot += finalBet;
   }
 
-  // จัดเก็บบันทึกประวัติรอบต่อรอบ
+  const pName = player.displayName || player.username;
   room.roundHistory.unshift({
     round: room.round,
-    player: player.username,
+    player: pName,
     betAmount: finalBet,
     communityCard,
     winningCard: highestWinningCard,
@@ -537,7 +549,7 @@ function processPlayerBet(room, player, amount) {
   saveUsersDatabase();
 
   io.to(room.code).emit('game:showdown_result', {
-    player: player.username,
+    player: pName,
     communityCard,
     winningCard: highestWinningCard,
     isWin,
@@ -632,7 +644,8 @@ function handlePlayerLeave(socket, roomCode, username) {
 
   room.isGameRunning = false;
   clearTimeout(room.timer);
-  io.to(roomCode).emit('game:need_start_click', `ผู้เล่น ${username} ออกจากห้อง กดเริ่มเกมส์เพื่อเริ่มรอบใหม่`);
+  const pName = USERS[username] ? (USERS[username].displayName || username) : username;
+  io.to(roomCode).emit('game:need_start_click', `ผู้เล่น ${pName} ออกจากห้อง กดเริ่มเกมส์เพื่อเริ่มรอบใหม่`);
   emitRoomState(room);
   broadcastLobbyRooms();
 }
@@ -646,6 +659,7 @@ function emitRoomState(room) {
     round: room.round,
     players: room.players.map(p => ({
       username: p.username,
+      displayName: p.displayName || p.username,
       chips: p.chips,
       cardCount: p.hand.length,
       hand: p.hand,
@@ -664,5 +678,5 @@ function emitRoomState(room) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server online with round-by-round engine on port ${PORT}`);
+  console.log(`Server running with nickname support on port ${PORT}`);
 });

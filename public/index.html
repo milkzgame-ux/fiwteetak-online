@@ -42,9 +42,9 @@
       100% { box-shadow: 0 0 30px #fef08a, 0 0 55px #eab308; }
     }
 
-    /* แอนิเมชันแจกไพ่สมูท ใช้ CSS Transition วิ่งเข้าหา Target */
+    /* แอนิเมชันแจกไพ่หน่วงเวลาให้ช้าลงเป็น 0.8s */
     .card-fly {
-      transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     .chat-bubble { animation: popIn 0.3s ease-out; }
@@ -94,6 +94,7 @@
     </div>
   </div>
 
+  <!-- AUTH SCREEN -->
   <div id="screenAuth" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
     <div class="w-full max-w-sm bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl">
       <div class="text-center mb-4">
@@ -126,6 +127,7 @@
     </div>
   </div>
 
+  <!-- LOBBY SCREEN -->
   <div id="screenLobby" class="hidden fixed inset-0 z-40 flex flex-col bg-stone-950 p-2 sm:p-4 max-w-6xl mx-auto">
     <header class="bg-stone-900 border border-amber-800/80 rounded-xl p-2.5 px-3 sm:px-5 mb-3 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-2">
       <div class="flex items-center gap-3">
@@ -155,8 +157,8 @@
         <button id="btnAdminPanel" class="hidden bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-950 font-bold px-2 py-1 rounded-lg text-xs shadow flex items-center gap-1">
           <i class="fa-solid fa-screwdriver-wrench"></i> จัดการระบบ
         </button>
-        <button id="btnLogoutMain" class="bg-stone-800 hover:bg-rose-900 border border-stone-700 text-stone-400 px-2 py-1 rounded-lg text-xs">
-          <i class="fa-solid fa-right-from-bracket"></i>
+        <button id="btnLogoutMain" class="bg-stone-800 hover:bg-rose-900 border border-stone-700 text-stone-400 px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
         </button>
       </div>
     </header>
@@ -189,7 +191,7 @@
     </div>
   </div>
 
-  <!-- Modals -->
+  <!-- Modals สำหรับแต่งตัว, กติกา, สร้างห้อง, ธนาคาร ฯลฯ -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -381,55 +383,47 @@
     
     <div class="flex items-center justify-between bg-stone-950/80 backdrop-blur border border-amber-900/80 rounded-xl px-3 py-1.5 text-xs shadow-lg z-40">
       <div class="flex items-center gap-2">
-        <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2.5 py-1 rounded border border-stone-700 text-[11px] font-bold">
-          <i class="fa-solid fa-arrow-left"></i> ออก
-        </button>
-        <button id="btnToggleSeat" class="bg-amber-700/80 hover:bg-amber-600 text-stone-950 font-bold px-2.5 py-1 rounded text-[11px] transition">
-          <i class="fa-solid fa-chair"></i> <span id="lblSeatAction">ลุกจากโต๊ะ</span>
-        </button>
+        <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2.5 py-1 rounded border border-stone-700 text-[11px] font-bold"><i class="fa-solid fa-arrow-left"></i> ออก</button>
+        <button id="btnToggleSeat" class="bg-amber-700/80 hover:bg-amber-600 text-stone-950 font-bold px-2.5 py-1 rounded text-[11px] transition"><i class="fa-solid fa-chair"></i> <span id="lblSeatAction">ลุกจากโต๊ะ</span></button>
         <div>
           <span class="text-amber-400 font-bold text-xs" id="hudRoomName">Saloon</span>
           <span class="text-stone-400 text-[10px] ml-1" id="hudRoomCode">#000000</span>
         </div>
       </div>
       <div class="flex items-center gap-1.5">
-        <button id="btnOpenRulesInGame" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60 flex items-center gap-1">
-          <i class="fa-solid fa-book"></i> กติกา
-        </button>
-        <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60">
-          <i class="fa-solid fa-scroll"></i> ประวัติ
-        </button>
+        <button id="btnOpenRulesInGame" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60 flex items-center gap-1"><i class="fa-solid fa-book"></i> กติกา</button>
+        <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2.5 py-1 rounded text-[11px] font-bold border border-amber-900/60"><i class="fa-solid fa-scroll"></i> ประวัติ</button>
       </div>
     </div>
 
-    <!-- โต๊ะสักหลาด -->
+    <!-- โต๊ะสักหลาดและโครงสร้างแบบ Flex-Col ล้วน -->
     <div class="relative flex-1 my-1 flex items-center justify-center overflow-hidden">
       <div class="table-wood-rim w-[82%] h-[78%] flex items-center justify-center relative">
-        <div class="poker-saloon-table w-full h-full relative">
+        <div class="poker-saloon-table w-full h-full relative flex flex-col items-center justify-center">
           
-          <div class="absolute inset-0 flex flex-col items-center justify-center opacity-15 pointer-events-none">
+          <div class="absolute inset-0 flex flex-col items-center justify-center opacity-15 pointer-events-none z-0">
             <div class="text-5xl font-rye text-amber-950">FiwTeeTak</div>
             <div class="text-[9px] uppercase font-bold tracking-widest text-amber-900 mt-1">Saloon Poker Table</div>
           </div>
 
-          <!-- ใช้ Flex Box ตรงกลางโต๊ะเพื่อเรียง ไพ่/ชิป ป้องกันการทับซ้อนกันแน่นอนร้อยเปอร์เซ็นต์ -->
-          <div class="absolute inset-0 flex flex-col items-center justify-center z-15 pointer-events-none">
+          <!-- ใช้ Flex Box ตรงกลางโต๊ะเพื่อเรียง ไพ่/ชิป/ปุ่ม จากบนลงล่าง ป้องกันการทับกัน 100% -->
+          <div class="relative z-15 flex flex-col items-center justify-center space-y-3 pointer-events-none w-full">
             
-            <!-- สำรับไพ่สำหรับแจก -->
-            <div id="deckCenterPile" class="mb-4">
+            <!-- สำรับไพ่สำหรับแอนิเมชันบิน -->
+            <div id="deckCenterPile" class="relative z-15 mb-2">
               <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl flex items-center justify-center">
                 <span class="text-blue-200 opacity-60 font-bold">♠</span>
               </div>
             </div>
 
             <!-- ชิป POT กลางโต๊ะ -->
-            <div class="flex items-center gap-1.5 bg-black/70 border border-amber-500/60 px-4 py-1.5 rounded-full shadow-lg mb-4">
+            <div class="flex items-center gap-1.5 bg-black/70 border border-amber-500/60 px-5 py-1.5 rounded-full shadow-lg">
               <i class="fa-solid fa-circle-dot text-amber-400 text-xs animate-spin"></i>
               <span id="lblCenterPotText" class="text-sm font-black text-amber-300 font-rye">0</span>
             </div>
 
             <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
-            <div id="boxShowcase" class="flex items-center justify-center gap-5 min-h-[90px]">
+            <div id="boxShowcase" class="flex items-center justify-center gap-5 min-h-[90px] w-full">
               <div class="flex flex-col items-center">
                 <span class="text-[10px] text-amber-100 font-bold mb-1 drop-shadow">ไพ่กองกลาง</span>
                 <div id="cardCommunity" class="w-[52px] h-[72px] bg-stone-900 border-2 border-stone-700 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl text-stone-400">?</div>
@@ -441,7 +435,7 @@
               </div>
             </div>
 
-            <div class="flex flex-col items-center mt-3 h-[40px] pointer-events-auto">
+            <div class="flex flex-col items-center min-h-[40px] w-full pointer-events-auto mt-2">
               <div id="txtGameStatus" class="text-xs font-bold text-amber-100 text-center drop-shadow px-4 py-1 bg-black/60 rounded-full mb-1"></div>
               <button id="btnStartGameAction" class="hidden pointer-events-auto bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-8 py-2.5 rounded-full text-xs animate-bounce shadow-2xl border-2 border-green-300 transition uppercase tracking-wide">
                 <i class="fa-solid fa-play"></i> กดเริ่มเกมส์
@@ -536,7 +530,7 @@
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(350, now);
           osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
-          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.setValueAtTime(0.2, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
           osc.start(now);
           osc.stop(now + 0.1);
@@ -686,26 +680,21 @@
       return `
         <div class="relative flex flex-col items-center" style="${waitingStyle}">
           <svg viewBox="0 0 80 80" width="80" height="80" class="overflow-visible">
-            <!-- ไหล่และลำตัว -->
             <ellipse cx="40" cy="55" rx="30" ry="14" fill="${sleeve}" filter="drop-shadow(0 4px 4px rgba(0,0,0,0.5))"/>
             <path d="M30 42 L50 42 L45 60 L35 60 Z" fill="#1f2937" opacity="0.8"/>
             <circle cx="40" cy="48" r="1.5" fill="#fbbf24"/>
             <circle cx="40" cy="54" r="1.5" fill="#fbbf24"/>
-            <!-- ผ้าโพกคอ -->
             <path d="M28 44 Q40 54 52 44 L45 36 Q40 38 35 36 Z" fill="${bColor}" filter="drop-shadow(0 2px 2px rgba(0,0,0,0.6))"/>
-
             <path d="M14 50 Q8 40 16 28" stroke="${sleeve}" stroke-width="8" stroke-linecap="round" fill="none" filter="drop-shadow(0 3px 3px rgba(0,0,0,0.4))"/>
             <ellipse cx="16" cy="26" rx="6.5" ry="5.5" fill="${skin}" class="hands-on-felt"/>
             <circle cx="13" cy="23" r="2" fill="${skin}"/>
             <circle cx="17" cy="22" r="2" fill="${skin}"/>
             <circle cx="21" cy="23" r="2" fill="${skin}"/>
-
             <path d="M66 50 Q72 40 64 28" stroke="${sleeve}" stroke-width="8" stroke-linecap="round" fill="none" filter="drop-shadow(0 3px 3px rgba(0,0,0,0.4))"/>
             <ellipse cx="64" cy="26" rx="6.5" ry="5.5" fill="${skin}" class="hands-on-felt"/>
             <circle cx="59" cy="23" r="2" fill="${skin}"/>
             <circle cx="63" cy="22" r="2" fill="${skin}"/>
             <circle cx="67" cy="23" r="2" fill="${skin}"/>
-
             ${hatBrim}
             ${hatCrown}
             ${badgeElement}
@@ -763,28 +752,20 @@
           }
         }
       });
-      
-      setTimeout(() => {
-        if (!responded) err.innerText = 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณารอสักครู่...';
-      }, 3000);
+      setTimeout(() => { if (!responded) err.innerText = 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณารอสักครู่...'; }, 3000);
     };
 
     document.getElementById('btnReconnectAccept').onclick = () => {
       modalReconnect.classList.add('hidden');
       socket.emit('room:confirm_reconnect', { roomCode: pendingReconnectRoomCode, accept: true }, (res) => {
-        if (res.success) {
-          enterGameScreen(pendingReconnectRoomCode);
-        } else {
-          screenLobby.classList.remove('hidden');
-          updateLobbyUI();
-        }
+        if (res.success) { enterGameScreen(pendingReconnectRoomCode); }
+        else { screenLobby.classList.remove('hidden'); updateLobbyUI(); }
       });
     };
     document.getElementById('btnReconnectReject').onclick = () => {
       modalReconnect.classList.add('hidden');
       socket.emit('room:confirm_reconnect', { roomCode: pendingReconnectRoomCode, accept: false }, () => {
-        screenLobby.classList.remove('hidden');
-        updateLobbyUI();
+        screenLobby.classList.remove('hidden'); updateLobbyUI();
       });
     };
 
@@ -794,34 +775,23 @@
       document.getElementById('lblPlayerUsername').innerText = displayName;
       document.getElementById('lblPlayerChips').innerText = (currentUser.chips || 0).toLocaleString();
       document.getElementById('lobbyAvatarPreview').innerHTML = generateTopDownCowboySVG(currentUser.avatar);
-
-      if (currentUser.role === 'admin' || currentUser.username === 'admin') {
-        btnAdminPanel.classList.remove('hidden');
-      } else {
-        btnAdminPanel.classList.add('hidden');
-      }
+      if (currentUser.role === 'admin' || currentUser.username === 'admin') { btnAdminPanel.classList.remove('hidden'); } 
+      else { btnAdminPanel.classList.add('hidden'); }
     }
 
     socket.on('auth:force_logout', ({ msg }) => {
       alert(msg || 'บัญชีของคุณถูกเข้าสู่ระบบจากเครื่องอื่น!');
       currentUser = null;
-      screenGame.classList.add('hidden');
-      screenLobby.classList.add('hidden');
-      modalCreateRoom.classList.add('hidden');
-      modalBank.classList.add('hidden');
-      modalAdmin.classList.add('hidden');
-      modalWardrobe.classList.add('hidden');
-      modalHistory.classList.add('hidden');
-      modalRules.classList.add('hidden');
-      modalReconnect.classList.add('hidden');
+      screenGame.classList.add('hidden'); screenLobby.classList.add('hidden');
+      modalCreateRoom.classList.add('hidden'); modalBank.classList.add('hidden');
+      modalAdmin.classList.add('hidden'); modalWardrobe.classList.add('hidden');
+      modalHistory.classList.add('hidden'); modalRules.classList.add('hidden'); modalReconnect.classList.add('hidden');
       document.getElementById('authPassword').value = '';
       screenAuth.classList.remove('hidden');
     });
 
     document.getElementById('btnSendGlobalChat').onclick = sendGlobalMessage;
-    document.getElementById('inputGlobalChat').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendGlobalMessage();
-    });
+    document.getElementById('inputGlobalChat').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendGlobalMessage(); });
     function sendGlobalMessage() {
       const input = document.getElementById('inputGlobalChat');
       const text = input.value.trim();
@@ -849,9 +819,7 @@
     document.getElementById('btnToggleRoomChat').onclick = () => document.getElementById('boxRoomChatPopup').classList.toggle('hidden');
     document.getElementById('btnCloseRoomChat').onclick = () => document.getElementById('boxRoomChatPopup').classList.add('hidden');
     document.getElementById('btnSendRoomChat').onclick = sendRoomMessage;
-    document.getElementById('inputRoomChat').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendRoomMessage();
-    });
+    document.getElementById('inputRoomChat').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendRoomMessage(); });
     function sendRoomMessage() {
       const input = document.getElementById('inputRoomChat');
       const text = input.value.trim();
@@ -1148,7 +1116,7 @@
       }
     }
 
-    // แอนิเมชันแจกไพ่ 4 รอบ พุ่งไปยังแต่ละคน
+    // แอนิเมชันแจกไพ่ค่อยๆ แจกทีละใบ
     socket.on('game:dealing_cards', () => {
       resetCommunityShowcase();
       const layer = document.getElementById('dealAnimationLayer');
@@ -1163,6 +1131,8 @@
 
       activePlayers.forEach(p => { dealtCardsCount[p.username] = 0; });
       document.getElementById('myHandCards').innerHTML = '';
+      
+      // อัปเดตล้างไพ่ทั้งหมดบนโต๊ะเพื่อเตรียมรับไพ่ใบใหม่
       renderTopDownSeats(currentRoomState.players, currentRoomState.activeTurnIndex, true, false);
 
       let delayMs = 0;
@@ -1180,9 +1150,14 @@
           const cosA = Math.cos(angle);
           const sinA = Math.sin(angle);
           
-          // คำนวณเป้าหมายให้ตรงกับตำแหน่งไพ่ที่วางข้างตัว
-          let targetLeft = charLeft - cosA * 5.0 + (-sinA) * 4.5;
-          let targetTop = charTop - sinA * 5.0 + cosA * 4.5;
+          // คำนวณดันพิกัดไพ่เข้าไปในโต๊ะให้ลึกขึ้นเพื่อหนีป้ายชื่อ (-8.5 multiplier)
+          let targetLeft = charLeft - cosA * 8.5 + (-sinA) * 5.5;
+          let targetTop = charTop - sinA * 8.5 + cosA * 5.5;
+          
+          // ขยับไพ่ซ้อนกันทีละนิด
+          const cardOffset = round * 1.5;
+          targetLeft += (-sinA) * cardOffset;
+          targetTop += cosA * cardOffset;
 
           setTimeout(() => {
             playSound('deal');
@@ -1198,27 +1173,25 @@
               card.style.transform = `translate(-50%, -50%) rotate(360deg)`;
             }, 10); 
 
-            // ลบแอนิเมชันเมื่อบินถึงเป้า และใส่ไพ่สถิตแทน
             setTimeout(() => {
               card.remove();
               dealtCardsCount[p.username]++;
               updateSeatCardsVisual(p);
-            }, 500);
+            }, 800); // ระยะเวลาบิน
 
           }, delayMs);
           
-          delayMs += 100;
+          delayMs += 200; // หน่วงให้แจกช้าลง
         });
       }
     });
-
-    // อัปเดตไพ่ข้างตัว และไพ่ในมือตามจำนวนที่แจกไปแล้ว
+    
+    // อัปเดตไพ่คว่ำข้างตัวและไพ่ในมือตามที่รับแจกมาแล้ว
     function updateSeatCardsVisual(p) {
       const container = document.getElementById(`seat_cards_${p.username}`);
       if (container) {
         const rotations = [-12, -4, 4, 12];
         const count = dealtCardsCount[p.username] || 0;
-        // จัดไพ่ให้เรียงซ้อนกัน
         container.innerHTML = Array.from({length: count}).map((_, i) => 
           `<div class="w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-md absolute top-0" style="left: ${i*6}px; transform: rotate(${rotations[i]}deg)"></div>`
         ).join('');
@@ -1282,13 +1255,13 @@
         const perpX = -sinA;
         const perpY = cosA;
 
-        // วางไพ่คว่ำข้างลำตัว (Container สำหรับใส่ไพ่เรียงกัน)
-        const cardLeft = charLeft - cosA * 5.0 + perpX * 4.5;
-        const cardTop = charTop - sinA * 5.0 + perpY * 4.5;
+        // ดันไพ่เข้าไปในโต๊ะเพื่อไม่ให้ทับป้ายชื่อ
+        const cardLeft = charLeft - cosA * 8.5 + perpX * 5.5;
+        const cardTop = charTop - sinA * 8.5 + perpY * 5.5;
 
-        // วางชิปข้างลำตัวอีกฝั่ง
-        const chipLeft = charLeft - cosA * 6.5 - perpX * 4.5;
-        const chipTop = charTop - sinA * 6.5 - perpY * 4.5;
+        // ดันชิปเข้าไปในโต๊ะอีกฝั่ง
+        const chipLeft = charLeft - cosA * 8.5 - perpX * 5.5;
+        const chipTop = charTop - sinA * 8.5 - perpY * 5.5;
 
         let initialCardsHTML = '';
         if (isGameRunning && cardsDealt && !p.isWaiting) {
@@ -1312,7 +1285,6 @@
             </div>
           </div>
           
-          <!-- กล่องใส่ไพ่คว่ำประจำที่นั่งสัมพัทธ์กับโต๊ะ -->
           <div id="seat_cards_${p.username}" class="absolute transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-10 h-6" style="left: ${cardLeft}%; top: ${cardTop}%;">
             ${initialCardsHTML}
           </div>

@@ -42,8 +42,7 @@
       100% { box-shadow: 0 0 30px #fef08a, 0 0 55px #eab308; }
     }
 
-    .card-fly { transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
+    .card-fly { transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
     .chat-bubble { animation: popIn 0.3s ease-out; }
     @keyframes popIn {
       0% { transform: scale(0.6) translateY(10px); opacity: 0; }
@@ -153,7 +152,7 @@
           <i class="fa-solid fa-screwdriver-wrench"></i> จัดการระบบ
         </button>
         <button id="btnLogoutMain" class="bg-stone-800 hover:bg-rose-900 border border-stone-700 text-stone-400 px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-right-from-bracket"></i>
+          <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
         </button>
       </div>
     </header>
@@ -250,7 +249,7 @@
       <div class="flex-1 overflow-y-auto space-y-3 pr-1 text-xs text-stone-300 leading-relaxed custom-scrollbar">
         <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
           <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> กติกาพื้นฐาน</h4>
-          <p>1. ทุกรอบใหม่หัก <b>ค่าต๋ง (Ante 50)</b> เข้ากองกลาง (POT) หากกองกลางเป็น 0</p>
+          <p>1. ทุกคนบนโต๊ะหัก <b>ค่าต๋ง (Ante 50)</b> เข้ากองกลาง (POT) เมื่อเริ่มเกมส์</p>
           <p>2. ผู้เล่นจะได้ไพ่ในมือ <b>4 ใบ</b></p>
           <p>3. คุณสามารถเดิมพันได้สูงสุดเท่าที่ชิปคุณมี และห้ามเกินยอด POT โดยบังคับ <b>ขั้นต่ำ 10 เหรียญ</b></p>
           <p>4. <b>มีเวลา 30 วินาที</b> หากหมดเวลาจะบังคับลงขั้นต่ำ (หรือเทหมดถ้าเงินไม่พอ 10)</p>
@@ -261,11 +260,6 @@
           <p>• หากคุณมีไพ่ <b>"ดอกเดียวกัน (Suit)"</b> และ <b>"แต้มสูงกว่า"</b> คุณจะ <b>ชนะ!</b></p>
           <p>• <b>เงินรางวัลชนะ:</b> ได้กำไร 1:1 จาก POT (เช่น เดิมพัน 50 ได้กลับมา 100 หักจาก POT ไป 50)</p>
           <p>• <b>แพ้:</b> ยอดที่เดิมพันจะถูกนำไปสบทบเข้า POT</p>
-        </div>
-        <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
-          <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-user-clock"></i> การเข้าเล่นกลางเกม (Spectator/Waiting)</h4>
-          <p>• ห้องเต็ม 6 คน ผู้ที่เข้าทีหลังจะเป็น <b>ผู้ชม (Spectator)</b></p>
-          <p>• หากนั่งเก้าอี้ว่างระหว่างเกม จะเป็นสถานะ <b>"รอเล่น (ตัวจาง)"</b> จนกว่ากองกลางจะหมดเหลือ 0 จึงจะได้เข้าเล่น</p>
         </div>
       </div>
     </div>
@@ -313,7 +307,7 @@
         <div>
           <label class="block text-[11px] text-stone-300 mb-1">รูปแบบห้อง</label>
           <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
-            <option value="bot">เติมบอทอัตโนมัติ</option>
+            <option value="bot">เล่นคนเดียว (เติมบอท)</option>
             <option value="human">เล่นกับคนเท่านั้น</option>
           </select>
         </div>
@@ -367,7 +361,7 @@
     </div>
   </div>
 
-  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE - แก้ไข Layout การทับซ้อน 100%) ================= -->
+  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE) ================= -->
   <div id="screenGame" class="hidden relative w-full h-full max-w-[1100px] max-h-[660px] flex flex-col justify-between p-2">
     
     <!-- Top HUD Bar -->
@@ -397,9 +391,9 @@
           </div>
 
           <!-- โซนกลางโต๊ะ: เรียงจากบนลงล่าง สำรับไพ่ -> ชิป POT -> ไพ่กองกลาง -> ข้อความ/ปุ่ม -->
-          <div class="relative z-15 flex flex-col items-center justify-center space-y-4 w-full pointer-events-none mt-2">
+          <div class="relative z-10 flex flex-col items-center justify-center space-y-4 w-full pointer-events-none mt-2">
             
-            <div id="deckCenterPile" class="relative z-15">
+            <div id="deckCenterPile" class="relative z-10">
               <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl flex items-center justify-center">
                 <span class="text-blue-200 opacity-60 font-bold">♠</span>
               </div>
@@ -432,9 +426,9 @@
         </div>
       </div>
 
-      <!-- เลเยอร์ที่นั่งผู้เล่นและแอนิเมชัน -->
-      <div id="seatsContainer" class="absolute inset-0 pointer-events-none z-20"></div>
-      <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-35"></div>
+      <!-- เลเยอร์ที่นั่งผู้เล่นและแอนิเมชัน ให้ Z-Index สูงสุดเพื่อไม่ให้โต๊ะบังตัวละครเด็ดขาด -->
+      <div id="seatsContainer" class="absolute inset-0 pointer-events-none z-30"></div>
+      <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-40"></div>
 
       <!-- แชทห้อง -->
       <div class="absolute bottom-2 left-3 z-40 pointer-events-auto">
@@ -574,7 +568,7 @@
         hatCrown = `<ellipse cx="40" cy="40" rx="16" ry="13" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/><line x1="28" y1="40" x2="52" y2="40" stroke="#ca8a04" stroke-width="2"/>`;
       } else if (hat === 'bowler') {
         hatBrim = `<circle cx="40" cy="40" r="30" fill="${hatCol}" stroke="#0f172a" stroke-width="2"/>`;
-        hatCrown = `<circle cx="40" cy="40" r="18" fill="${hatCol}" filter="drop-shadow(0 4px 5px rgba(0,0,0,0.8))"/><circle cx="40" cy="40" r="14" fill="#1e293b"/>`;
+        hatCrown = `<circle cx="40" cy="40" r="18" fill="${hatCol}" filter="drop-shadow(0 4px 5px rgba(0,0,0,0.8))"/>`;
       } else if (hat === 'fedora') {
         hatBrim = `<ellipse cx="40" cy="40" rx="33" ry="26" fill="${hatCol}" stroke="#1e293b" stroke-width="1.5"/>`;
         hatCrown = `<ellipse cx="40" cy="39" rx="16" ry="12" fill="${hatCol}" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.7))"/><path d="M40 32 L40 46" stroke="#0f172a" stroke-width="2"/><line x1="24" y1="39" x2="56" y2="39" stroke="#991b1b" stroke-width="2.5"/>`;
@@ -643,14 +637,15 @@
       err.innerText = 'กำลังเชื่อมต่อ...';
       if (!u || !p) return err.innerText = 'กรุณากรอกข้อมูลให้ครบ';
 
+      let responded = false;
       const evt = isRegisterMode ? 'auth:register' : 'auth:login';
       socket.emit(evt, { username: u, password: p }, (res) => {
+        responded = true;
         if (!res.success) {
           err.innerText = res.msg || 'เกิดข้อผิดพลาด';
         } else {
           err.innerText = '';
           currentUser = res.user;
-          // เซฟฐานข้อมูลลง Local Storage เพื่อกู้คืนกรณี Render รีเซ็ตไฟล์
           saveLocalDbBackup({ [u]: res.user });
           
           screenAuth.classList.add('hidden');
@@ -665,6 +660,7 @@
           }
         }
       });
+      setTimeout(() => { if (!responded) err.innerText = 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณารอสักครู่...'; }, 3000);
     };
 
     document.getElementById('btnReconnectAccept').onclick = () => {
@@ -950,7 +946,6 @@
     const sliderBet = document.getElementById('sliderBet');
     const inputBet = document.getElementById('inputBetNumber');
     
-    // ตั้งค่าลิมิตการเดิมพัน ขั้นต่ำ 10 เหรียญ (ถ้ามีไม่ถึงก็ลงได้เท่าที่มี) มากสุดห้ามเกิน POT หรือเกินชิปตนเอง
     function updateBetLimits(me, pot) {
       if (!me) return;
       const absoluteMax = Math.min(me.chips, pot); 
@@ -1005,15 +1000,12 @@
 
       const me = state.players.find(p => p.username === currentUser.username);
       if (me) {
-        // อัปเดตข้อมูลเหรียญใน Local Storage ทันที ป้องกันการสูญหายระหว่างเล่น
         currentUser.chips = me.chips;
         saveLocalDbBackup({ [currentUser.username]: currentUser });
         updateBetLimits(me, state.pot);
       }
 
-      // หงายไพ่ 4 ใบของตนเองแบบค่อยๆ ปรากฏทีละใบถ้ามาจากการแจก
       updateHeroHandVisuals(me, state);
-
       checkPlayerTurnLock(state);
       
       if (!state.isGameRunning) {
@@ -1022,7 +1014,7 @@
         document.getElementById('boxShowcase').classList.remove('hidden');
       }
       
-      // อัปเดตตัวละครและไพ่ข้างที่นั่งแบบไม่กระพริบ
+      // บังคับ Render ที่นั่งให้เห็นตัวละครทุกคนทันที
       renderTopDownSeats(state.players, state.activeTurnIndex, state.isGameRunning, state.cardsDealt);
     });
 
@@ -1068,7 +1060,6 @@
       activePlayers.forEach(p => { dealtCardsCount[p.username] = 0; });
       document.getElementById('myHandCards').innerHTML = '';
       
-      // อัปเดตล้างไพ่ทั้งหมดบนโต๊ะเพื่อเตรียมรับไพ่ใบใหม่
       renderTopDownSeats(currentRoomState.players, currentRoomState.activeTurnIndex, true, false);
 
       let delayMs = 0;
@@ -1086,7 +1077,6 @@
           const cosA = Math.cos(angle);
           const sinA = Math.sin(angle);
           
-          // ดันพิกัดไพ่ให้พ้นรัศมีป้ายชื่อ (ปรับเวกเตอร์ให้ลึกเข้าในโต๊ะอีกนิด)
           let targetLeft = charLeft - cosA * 8.5 + (-sinA) * 5.5;
           let targetTop = charTop - sinA * 8.5 + cosA * 5.5;
           
@@ -1111,11 +1101,11 @@
               card.remove();
               dealtCardsCount[p.username]++;
               updateSeatCardsVisual(p);
-            }, 800); 
+            }, 500); 
 
           }, delayMs);
           
-          delayMs += 200; // หน่วงเวลาให้เห็นชัดเจน (4 รอบ)
+          delayMs += 180;
         });
       }
     });
@@ -1188,11 +1178,9 @@
         const perpX = -sinA;
         const perpY = cosA;
 
-        // วางไพ่คว่ำข้างลำตัว (Container สำหรับใส่ไพ่เรียงกัน) ไม่ให้บังป้ายชื่อ
         const cardLeft = charLeft - cosA * 8.5 + perpX * 5.5;
         const cardTop = charTop - sinA * 8.5 + perpY * 5.5;
 
-        // วางชิปข้างลำตัวอีกฝั่ง
         const chipLeft = charLeft - cosA * 8.5 - perpX * 5.5;
         const chipTop = charTop - sinA * 8.5 - perpY * 5.5;
 
@@ -1251,7 +1239,7 @@
       const targetName = activeDisplayName || activeUsername;
       document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `รอ ${targetName} เดิมพัน...`;
       resetCommunityShowcase();
-      document.getElementById('boxShowcase').classList.remove('hidden'); // โชว์กล่องไพ่กองกลางรอการเปิด
+      document.getElementById('boxShowcase').classList.remove('hidden');
       
       setBettingControlsEnabled(isMe);
 

@@ -59,7 +59,6 @@ function saveUsersDatabase() {
 loadUsersDatabase();
 
 const ACTIVE_SESSIONS = {};
-const DISCONNECTED_PLAYERS = {};
 const ROOMS = {};
 
 const SUITS = ['♠', '♥', '♦', '♣'];
@@ -94,7 +93,6 @@ const BOT_PRESETS = [
 
 io.on('connection', (socket) => {
   let currentAuthUser = null;
-  let currentRoomId = null;
 
   socket.on('db:sync_restore', ({ backupData }) => {
     if (backupData && backupData.username) {
@@ -141,15 +139,7 @@ io.on('connection', (socket) => {
 
     ACTIVE_SESSIONS[username] = socket.id;
     currentAuthUser = username;
-
-    let reconnectData = null;
-    if (DISCONNECTED_PLAYERS[username]) {
-      const rCode = DISCONNECTED_PLAYERS[username].roomCode;
-      if (ROOMS[rCode]) reconnectData = { roomCode: rCode, roomName: ROOMS[rCode].name };
-      else delete DISCONNECTED_PLAYERS[username];
-    }
-
-    cb({ success: true, user: sanitizeUser(user), reconnectData });
+    cb({ success: true, user: sanitizeUser(user) });
   });
 
   socket.on('auth:logout', () => {
@@ -164,36 +154,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('room:confirm_reconnect', ({ roomCode, accept }, cb) => {
-    if (!currentAuthUser) return cb({ success: false });
-    const room = ROOMS[roomCode];
-
-    if (!accept || !room) {
-      if (DISCONNECTED_PLAYERS[currentAuthUser]) {
-        clearTimeout(DISCONNECTED_PLAYERS[currentAuthUser].disconnectTimer);
-        delete DISCONNECTED_PLAYERS[currentAuthUser];
-      }
-      if (room) handlePlayerLeave(socket, roomCode, currentAuthUser);
-      return cb({ success: false });
-    }
-
-    clearTimeout(DISCONNECTED_PLAYERS[currentAuthUser].disconnectTimer);
-    delete DISCONNECTED_PLAYERS[currentAuthUser];
-
-    const player = room.players.find(p => p.username === currentAuthUser);
-    if (player) {
-      player.isOffline = false;
-      player.isBotTemporary = false;
-    }
-
-    socket.join(roomCode);
-    socket.currentRoomId = roomCode;
-    currentRoomId = roomCode;
-
-    cb({ success: true, roomCode });
-    emitRoomState(room);
-  });
-
   socket.on('user:update_avatar', ({ avatar, displayName }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     if (avatar) USERS[currentAuthUser].avatar = avatar;
@@ -202,13 +162,13 @@ io.on('connection', (socket) => {
     }
     saveUsersDatabase();
 
-    if (currentRoomId && ROOMS[currentRoomId]) {
-      const p = ROOMS[currentRoomId].players.find(x => x.username === currentAuthUser);
+    if (socket.currentRoomId && ROOMS[socket.currentRoomId]) {
+      const p = ROOMS[socket.currentRoomId].players.find(x => x.username === currentAuthUser);
       if (p) {
         if (avatar) p.avatar = avatar;
         if (displayName) p.displayName = USERS[currentAuthUser].displayName;
       }
-      emitRoomState(ROOMS[currentRoomId]);
+      emitRoomState(ROOMS[socket.currentRoomId]);
     }
     cb({ success: true, user: sanitizeUser(USERS[currentAuthUser]) });
   });
@@ -224,9 +184,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('chat:room_send', ({ text }) => {
-    if (!currentRoomId || !currentAuthUser || !text.trim()) return;
+    if (!socket.currentRoomId || !currentAuthUser || !text.trim()) return;
     const sName = USERS[currentAuthUser].displayName || currentAuthUser;
-    io.to(currentRoomId).emit('chat:room_broadcast', {
+    io.to(socket.currentRoomId).emit('chat:room_broadcast', {
       sender: sName,
       text: text.trim().substring(0, 50)
     });
@@ -300,17 +260,23 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(u) });
   });
 
+  // สร้างห้องใหม่ (แยกอิสระ 100%)
   socket.on('room:create', ({ roomName, maxPlayers, password, mode }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
-    const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
     
+    // หากค้างอยู่ห้องเดิม ให้ออกจากห้องเดิมก่อนเด็ดขาด
+    if (socket.currentRoomId) {
+      handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
+    }
+
+    const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
     const newRoom = {
       code: roomCode,
       name: roomName || `Saloon #${roomCode}`,
       host: currentAuthUser,
       maxPlayers: parseInt(maxPlayers) || 6,
       password: password || null,
-      mode: mode || 'bot',
+      mode: mode || 'human',
       pot: 0,
       round: 1,
       deck: [],
@@ -326,8 +292,9 @@ io.on('connection', (socket) => {
     };
 
     ROOMS[roomCode] = newRoom;
-    currentRoomId = roomCode;
     socket.currentRoomId = roomCode;
+    socket.join(roomCode);
+    
     joinRoomInternal(socket, roomCode, currentAuthUser);
     
     cb({ success: true, roomCode });
@@ -336,12 +303,17 @@ io.on('connection', (socket) => {
 
   socket.on('room:join', ({ roomCode, password }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
+    
+    if (socket.currentRoomId) {
+      handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
+    }
+
     const room = ROOMS[roomCode];
-    if (!room) return cb({ success: false, msg: 'ไม่พบเลขห้องนี้ หรือห้องถูกลบแล้ว' });
+    if (!room) return cb({ success: false, msg: 'ไม่พบเลขห้องนี้ หรือห้องถูกปิดแล้ว' });
     if (room.password && room.password !== password) return cb({ success: false, msg: 'รหัสผ่านห้องไม่ถูกต้อง' });
 
-    currentRoomId = roomCode;
     socket.currentRoomId = roomCode;
+    socket.join(roomCode);
     joinRoomInternal(socket, roomCode, currentAuthUser);
 
     cb({ success: true, roomCode });
@@ -349,8 +321,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('game:stand_up', () => {
-    if (!currentRoomId || !ROOMS[currentRoomId]) return;
-    const room = ROOMS[currentRoomId];
+    if (!socket.currentRoomId || !ROOMS[socket.currentRoomId]) return;
+    const room = ROOMS[socket.currentRoomId];
     const pIdx = room.players.findIndex(p => p.username === currentAuthUser);
     
     if (pIdx !== -1) {
@@ -367,16 +339,15 @@ io.on('connection', (socket) => {
     }
     
     emitRoomState(room);
-    checkAndCleanEmptyRoom(currentRoomId);
+    checkAndCleanEmptyRoom(socket.currentRoomId);
   });
 
-  // นั่งลงเล่น (ยังไม่หัก Ante จนกว่าจะเริ่มเกม)
   socket.on('game:sit_down', () => {
-    if (!currentRoomId || !ROOMS[currentRoomId]) return;
-    const room = ROOMS[currentRoomId];
+    if (!socket.currentRoomId || !ROOMS[socket.currentRoomId]) return;
+    const room = ROOMS[socket.currentRoomId];
     
     if (room.players.length + room.waitingQueue.length >= room.maxPlayers) {
-      return socket.emit('game:msg', 'ที่นั่งโต๊ะเต็มแล้ว! ไม่สามารถนั่งได้');
+      return socket.emit('game:msg', 'ที่นั่งโต๊ะเต็มแล้ว!');
     }
 
     room.spectators = room.spectators.filter(u => u !== currentAuthUser);
@@ -404,9 +375,10 @@ io.on('connection', (socket) => {
     emitRoomState(room);
   });
 
+  // กดเริ่มเกม -> หัก Ante ทันทีตรงนี้!
   socket.on('game:start_click', () => {
-    if (!currentRoomId || !ROOMS[currentRoomId]) return;
-    const room = ROOMS[currentRoomId];
+    if (!socket.currentRoomId || !ROOMS[socket.currentRoomId]) return;
+    const room = ROOMS[socket.currentRoomId];
 
     if (room.pot === 0 && room.waitingQueue.length > 0) {
       while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
@@ -424,9 +396,10 @@ io.on('connection', (socket) => {
     startNewGameRound(room);
   });
 
+  // วางเดิมพัน -> คำนวณเงินทันทีพร้อมเปิดไพ่
   socket.on('game:bet', ({ amount }) => {
-    if (!currentRoomId || !ROOMS[currentRoomId]) return;
-    const room = ROOMS[currentRoomId];
+    if (!socket.currentRoomId || !ROOMS[socket.currentRoomId]) return;
+    const room = ROOMS[socket.currentRoomId];
     if (!room.isGameRunning || !room.cardsDealt) return;
 
     const player = room.players[room.activeTurnIndex];
@@ -439,41 +412,16 @@ io.on('connection', (socket) => {
   });
 
   socket.on('room:leave', () => {
-    if (socket.currentRoomId) handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
+    if (socket.currentRoomId) {
+      handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
+    }
   });
 
   socket.on('disconnect', () => {
     if (currentAuthUser && ACTIVE_SESSIONS[currentAuthUser] === socket.id) {
       delete ACTIVE_SESSIONS[currentAuthUser];
     }
-
     if (socket.currentRoomId) {
-      const room = ROOMS[socket.currentRoomId];
-      if (room && currentAuthUser) {
-        const player = room.players.find(p => p.username === currentAuthUser);
-        if (player) {
-          player.isOffline = true;
-          player.isBotTemporary = true;
-
-          if (room.isGameRunning && room.cardsDealt && room.players[room.activeTurnIndex] && room.players[room.activeTurnIndex].username === currentAuthUser) {
-            clearTimeout(room.timer);
-            setTimeout(() => { processPlayerBet(room, player, 10); }, 1500);
-          }
-
-          const tId = setTimeout(() => {
-            handlePlayerLeave(socket, room.code, currentAuthUser);
-            delete DISCONNECTED_PLAYERS[currentAuthUser];
-          }, 180000); // รอ 3 นาที
-
-          DISCONNECTED_PLAYERS[currentAuthUser] = {
-            roomCode: room.code,
-            disconnectTimer: tId
-          };
-
-          emitRoomState(room);
-          return;
-        }
-      }
       handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
     }
   });
@@ -501,6 +449,7 @@ function broadcastLobbyRooms() {
     maxPlayers: r.maxPlayers,
     hasPassword: !!r.password,
     pot: r.pot,
+    mode: r.mode,
     isGameRunning: r.isGameRunning
   }));
   io.emit('lobby:rooms_update', roomList);
@@ -508,11 +457,8 @@ function broadcastLobbyRooms() {
 
 function joinRoomInternal(socket, roomCode, username) {
   const room = ROOMS[roomCode];
-  socket.join(roomCode);
-
   const userDbInfo = USERS[username] || { chips: 5000, displayName: username, avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' } };
 
-  // ตอนเข้าห้อง ยังไม่หัก Ante เพื่อให้ POT เป็น 0 และเงินผู้เล่นยังอยู่ครบ
   const playerObj = {
     username,
     displayName: userDbInfo.displayName,
@@ -530,18 +476,16 @@ function joinRoomInternal(socket, roomCode, username) {
   if (totalCurrentPlayers < room.maxPlayers) {
     if (room.isGameRunning) {
       room.waitingQueue.push(playerObj);
-      socket.emit('game:msg', 'คุณเข้าห้องกลางเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นและรับปันผลได้');
+      socket.emit('game:msg', 'คุณเข้าห้องกลางเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นได้');
     } else {
       room.players.push(playerObj);
     }
   } else {
-    if (!room.spectators.includes(username)) {
-      room.spectators.push(username);
-    }
+    if (!room.spectators.includes(username)) room.spectators.push(username);
     socket.emit('game:msg', 'ที่นั่งบนโต๊ะเต็มแล้ว! คุณได้เข้าร่วมในฐานะ ผู้ชม');
   }
 
-  // เติมบอทถ้าเป็นโหมดบอท
+  // หากเป็นโหมดบอท ใส่บอทเฉพาะห้องนี้จนเต็ม (เล่นคนเดียว ไม่ข้ามห้อง)
   if (room.mode === 'bot' && (room.players.length + room.waitingQueue.length) < room.maxPlayers) {
     let botIdx = 0;
     while ((room.players.length + room.waitingQueue.length) < room.maxPlayers) {
@@ -567,20 +511,19 @@ function joinRoomInternal(socket, roomCode, username) {
   if (!room.isGameRunning) {
     const realPlayers = room.players.filter(p => !p.isWaiting).length;
     if (realPlayers >= 2) {
-      io.to(room.code).emit('game:need_start_click', 'โต๊ะพร้อมแล้ว! กดเริ่มเกมส์เพื่อเริ่มเล่นรอบแรก (หัก Ante 50)');
+      io.to(room.code).emit('game:need_start_click', 'โต๊ะพร้อมแล้ว! กดเริ่มเกมส์เพื่อเริ่มเล่น (หัก Ante 50)');
     } else {
       io.to(room.code).emit('game:need_start_click', 'กำลังรอผู้เล่นอย่างน้อย 2 คนเพื่อเริ่มเกม...');
     }
   }
 }
 
-// เริ่มต้นรอบใหม่ -> หัก Ante เข้า POT ทันทีตรงนี้!
+// เริ่มรอบใหม่: หัก Ante 50 ทุกคนเข้า POT ทันทีตรงนี้
 function startNewGameRound(room) {
   room.isGameRunning = true;
   room.cardsDealt = false;
   room.deck = createDeck();
 
-  // หัก Ante 50 เหรียญจากผู้เล่นทุกคนที่พร้อมเล่น เมื่อกดเริ่มเกมส์ (หาก Pot เดิมหมดเป็น 0)
   if (room.pot === 0) {
     room.players.forEach(p => {
       const ante = Math.min(50, p.chips);
@@ -598,12 +541,12 @@ function startNewGameRound(room) {
 
   room.activeTurnIndex = room.dealerIndex;
   
-  // แจ้งลูกข่ายให้แสดงชิป POT ที่หักแล้วทันที และเริ่มอนิเมชันแจกไพ่
+  // แจ้ง Client ให้อัปเดต POT ทันที และเริ่มแอนิเมชันแจกไพ่
   emitRoomState(room);
   io.to(room.code).emit('game:dealing_cards');
 
   const activeCount = room.players.filter(p => !p.isWaiting).length;
-  const dealTime = (activeCount * 4 * 180) + 900;
+  const dealTime = (activeCount * 4 * 160) + 700;
 
   setTimeout(() => {
     room.cardsDealt = true;
@@ -625,7 +568,7 @@ function startTurnTimer(room) {
     timeoutSec: 30
   });
 
-  if (currentP.isBot || currentP.isBotTemporary) {
+  if (currentP.isBot) {
     setTimeout(() => {
       const maxBet = Math.min(currentP.chips, room.pot);
       const betAmt = Math.min(Math.max(10, Math.floor(Math.random() * (maxBet - 10 + 1)) + 10), maxBet);
@@ -660,6 +603,7 @@ function processPlayerBet(room, player, amount) {
 
   const isWin = highestWinningCard !== null;
 
+  // คำนวณยอดเงินทันทีที่เปิดไพ่
   if (isWin) {
     const wonAmount = finalBet * 2;
     room.pot -= finalBet;
@@ -683,16 +627,18 @@ function processPlayerBet(room, player, amount) {
     timestamp: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
   });
 
-  emitRoomState(room);
-
+  // ส่งผลให้เห็นการหงายไพ่กองกลางและอัปเดตชิปทันที
   io.to(room.code).emit('game:showdown_result', {
     player: pName,
     communityCard,
     winningCard: highestWinningCard,
     isWin,
     betAmount: finalBet,
-    potNow: room.pot
+    potNow: room.pot,
+    playerChipsNow: player.chips
   });
+
+  emitRoomState(room);
 
   setTimeout(() => {
     checkNextTurnOrRoundEnd(room);
@@ -700,19 +646,11 @@ function processPlayerBet(room, player, amount) {
 }
 
 function checkNextTurnOrRoundEnd(room) {
+  // หาก Pot หมดเกลี้ยง -> สั่ง Reset รอบ และดึงคนรอเข้ามาเล่น
   if (room.pot <= 0) {
     room.pot = 0;
     room.isGameRunning = false;
     room.cardsDealt = false;
-
-    const offlinePlayers = room.players.filter(p => p.isOffline);
-    offlinePlayers.forEach(p => {
-      handlePlayerLeave(null, room.code, p.username);
-      if (DISCONNECTED_PLAYERS[p.username]) {
-        clearTimeout(DISCONNECTED_PLAYERS[p.username].disconnectTimer);
-        delete DISCONNECTED_PLAYERS[p.username];
-      }
-    });
 
     while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
       const waitingP = room.waitingQueue.shift();
@@ -721,7 +659,7 @@ function checkNextTurnOrRoundEnd(room) {
     }
 
     emitRoomState(room);
-    io.to(room.code).emit('game:need_start_click', 'กองกลางหมดแล้ว (Pot Reset)! ผู้เล่นใหม่เข้าร่วมได้แล้ว กดเริ่มเกมส์เพื่อเริ่มรอบใหม่ (หัก Ante 50)');
+    io.to(room.code).emit('game:need_start_click', 'กองกลางหมดแล้ว (Pot Reset)! กดเริ่มเกมส์เพื่อเริ่มรอบใหม่ (หัก Ante 50)');
     return;
   }
 
@@ -760,13 +698,15 @@ function checkNextTurnOrRoundEnd(room) {
   }
 }
 
+// ปิดและลบห้องทิ้งทันทีหากไม่มีคนจริงเหลืออยู่เลย
 function checkAndCleanEmptyRoom(roomCode) {
   const room = ROOMS[roomCode];
   if (!room) return;
+  
   const realHumans = 
-    room.players.filter(p => !p.isBot && !p.isOffline).length +
+    room.players.filter(p => !p.isBot).length +
     room.waitingQueue.filter(p => !p.isBot).length +
-    (room.spectators ? room.spectators.length : 0);
+    room.spectators.length;
 
   if (realHumans === 0) {
     clearTimeout(room.timer);
@@ -783,13 +723,14 @@ function handlePlayerLeave(socket, roomCode, username) {
 
   room.players = room.players.filter(p => p.username !== username);
   room.waitingQueue = room.waitingQueue.filter(p => p.username !== username);
-  if (room.spectators) room.spectators = room.spectators.filter(u => u !== username);
+  room.spectators = room.spectators.filter(u => u !== username);
 
   if (socket) {
     socket.leave(roomCode);
     socket.currentRoomId = null;
   }
 
+  // หากไม่มีผู้เล่นจริงเหลืออยู่ ลบห้องทิ้งทันที!
   if (checkAndCleanEmptyRoom(roomCode)) return;
 
   if (room.host === username) {
@@ -800,8 +741,9 @@ function handlePlayerLeave(socket, roomCode, username) {
   room.isGameRunning = false;
   room.cardsDealt = false;
   clearTimeout(room.timer);
+  
   const pName = USERS[username] ? (USERS[username].displayName || username) : username;
-  io.to(roomCode).emit('game:need_start_click', `ผู้เล่น ${pName} ออกจากห้อง กดเริ่มเกมส์เพื่อเริ่มรอบใหม่`);
+  io.to(roomCode).emit('game:need_start_click', `ผู้เล่น ${pName} ออกจากห้อง กดเริ่มเกมส์เพื่อเริ่มใหม่`);
   emitRoomState(room);
   broadcastLobbyRooms();
 }
@@ -817,7 +759,6 @@ function emitRoomState(room) {
       avatar: p.avatar || { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' },
       isBot: p.isBot,
       isWaiting: false,
-      isOffline: p.isOffline,
       lastBet: p.lastBet || 0
     })),
     ...room.waitingQueue.map(p => ({
@@ -829,7 +770,6 @@ function emitRoomState(room) {
       avatar: p.avatar || { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' },
       isBot: p.isBot,
       isWaiting: true,
-      isOffline: false,
       lastBet: 0
     }))
   ];
@@ -853,5 +793,5 @@ function emitRoomState(room) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server online on port ${PORT}`);
 });

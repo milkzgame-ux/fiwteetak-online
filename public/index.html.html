@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FiwTeeTak - Saloon Online</title>
+  <!-- Socket.io Client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Tailwind CSS & Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* CSS Styling โต๊ะสักหลาดแดงและ Saloon Theme */
+    body { background-color: #120907; color: #fff; font-family: sans-serif; overflow: hidden; }
+    .table-felt {
+      background: radial-gradient(ellipse at center, #931a1a 0%, #4a0808 70%, #1a0202 100%);
+      border: 14px solid #3d2314;
+      box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.9);
+      border-radius: 200px;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center h-screen w-screen">
+
+  <!-- เชื่อมต่อไปยัง Server -->
+  <script>
+    // เชื่อมต่อไปยัง Domain เดียวกันผ่าน WebSocket
+    const socket = io();
+
+    socket.on('connect', () => {
+      console.log('✅ เชื่อมต่อ Saloon Online Server สำเร็จ! Socket ID:', socket.id);
+    });
+
+    // ตัวอย่างการส่ง Login ไปหา Server จริง
+    function login(username, password) {
+      socket.emit('auth:login', { username, password }, (res) => {
+        if (res.success) {
+          alert('เข้าสู่ระบบสำเร็จ! ผู้เล่น: ' + res.user.username);
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + res.msg);
+        }
+      });
+    }
+
+    // เมื่อ Server สั่งอัปเดตกระดาน
+    socket.on('game:state_sync', (state) => {
+      console.log('ข้อมูลโต๊ะสดจาก Server:', state);
+      // นำ state.pot, state.players, state.activeTurnIndex ไปเรนเดอร์ลงโต๊ะ
+    });
+
+    // แสดงการนับถอยหลัง 20 วิ
+    socket.on('game:turn_start', ({ activeUsername, timeoutSec }) => {
+      console.log(`ตาของ ${activeUsername} มีเวลา ${timeoutSec} วินาที`);
+    });
+
+    // ชนะเดิมพัน ขึ้นกรอบทองใบใหญ่สุด
+    socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount }) => {
+      if (isWin) {
+        console.log(`🏆 ${player} ชนะ! ไพ่ใบใหญ่สุดคือ ${winningCard.rank}${winningCard.suit} ชนะกองกลาง ${communityCard.rank}${communityCard.suit}`);
+      }
+    });
+
+    // เมื่อเกิด Pot Split 80%
+    socket.on('game:pot_split_jackpot', ({ perPlayer, remainingPot }) => {
+      alert(`🎉 กองกลางแตก 80%! ทุกคนได้รับส่วนแบ่งคนละ ${perPlayer} เหรียญ`);
+    });
+  </script>
+</body>
+</html>

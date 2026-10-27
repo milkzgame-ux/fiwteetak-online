@@ -69,6 +69,7 @@ const RANK_VALUES = {
   'J': 11, 'Q': 12, 'K': 13, 'A': 14
 };
 
+// สุ่มไพ่มาตรฐานคาสิโน
 function createDeck() {
   const deck = [];
   for (const s of SUITS) {
@@ -113,6 +114,7 @@ io.on('connection', (socket) => {
     if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบ' });
     if (USERS[username]) return cb({ success: false, msg: 'ชื่อผู้ใช้นี้มีในระบบแล้ว' });
     
+    // แจกเงินเริ่มต้น 5000
     USERS[username] = {
       username,
       displayName: username,
@@ -153,6 +155,18 @@ io.on('connection', (socket) => {
     }
 
     cb({ success: true, user: sanitizeUser(user), allDb: USERS, reconnectData });
+  });
+
+  socket.on('auth:logout', () => {
+    if (currentAuthUser) {
+      if (ACTIVE_SESSIONS[currentAuthUser] === socket.id) {
+        delete ACTIVE_SESSIONS[currentAuthUser];
+      }
+      if (socket.currentRoomId) {
+        handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
+      }
+      currentAuthUser = null;
+    }
   });
 
   socket.on('room:confirm_reconnect', ({ roomCode, accept }, cb) => {
@@ -353,7 +367,6 @@ io.on('connection', (socket) => {
       room.waitingQueue = room.waitingQueue.filter(p => p.username !== currentAuthUser);
       if (!room.spectators.includes(currentAuthUser)) room.spectators.push(currentAuthUser);
     }
-    
     emitRoomState(room);
     checkAndCleanEmptyRoom(currentRoomId);
   });
@@ -362,20 +375,21 @@ io.on('connection', (socket) => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
     
-    // เช็คว่าที่นั่งโต๊ะเต็มหรือยัง
     if (room.players.length + room.waitingQueue.length >= room.maxPlayers) {
       return socket.emit('game:msg', 'ที่นั่งโต๊ะเต็มแล้ว! ไม่สามารถนั่งได้');
     }
 
-    // เอาตัวเองออกจากผู้ชม
     room.spectators = room.spectators.filter(u => u !== currentAuthUser);
+    
+    // ป้องกันการ Error หากข้อมูล user สูญหาย
+    const userDbInfo = USERS[currentAuthUser] || { chips: 5000, displayName: currentAuthUser, avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' } };
     
     const pObj = {
       username: currentAuthUser,
-      displayName: USERS[currentAuthUser].displayName || currentAuthUser,
-      chips: USERS[currentAuthUser].chips,
+      displayName: userDbInfo.displayName,
+      chips: userDbInfo.chips,
       hand: [],
-      avatar: USERS[currentAuthUser].avatar,
+      avatar: userDbInfo.avatar,
       isWaiting: room.isGameRunning,
       lastBet: 0,
       isOffline: false,
@@ -384,7 +398,7 @@ io.on('connection', (socket) => {
 
     if (room.isGameRunning) {
       room.waitingQueue.push(pObj);
-      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะได้เข้าเล่น');
+      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นได้');
     } else {
       room.players.push(pObj);
     }
@@ -450,7 +464,7 @@ io.on('connection', (socket) => {
           const tId = setTimeout(() => {
             handlePlayerLeave(socket, room.code, currentAuthUser);
             delete DISCONNECTED_PLAYERS[currentAuthUser];
-          }, 180000);
+          }, 180000); // 3 นาที
 
           DISCONNECTED_PLAYERS[currentAuthUser] = {
             roomCode: room.code,
@@ -497,12 +511,14 @@ function joinRoomInternal(socket, roomCode, username) {
   const room = ROOMS[roomCode];
   socket.join(roomCode);
 
+  const userDbInfo = USERS[username] || { chips: 5000, displayName: username, avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' } };
+
   const playerObj = {
     username,
-    displayName: USERS[username].displayName || username,
-    chips: USERS[username].chips,
+    displayName: userDbInfo.displayName,
+    chips: userDbInfo.chips,
     hand: [],
-    avatar: USERS[username].avatar || { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' },
+    avatar: userDbInfo.avatar,
     isWaiting: room.isGameRunning,
     lastBet: 0,
     isOffline: false,
@@ -514,19 +530,17 @@ function joinRoomInternal(socket, roomCode, username) {
   if (totalCurrentPlayers < room.maxPlayers) {
     if (room.isGameRunning) {
       room.waitingQueue.push(playerObj);
-      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นและรับปันผลได้');
+      socket.emit('game:msg', 'คุณนั่งเข้ามาระหว่างเกม! ต้องรอกองกลาง (Pot) หมดเหลือ 0 ก่อนจึงจะเข้าร่วมเล่นได้');
     } else {
       room.players.push(playerObj);
     }
   } else {
-    // ห้องเต็ม โยนเข้าสู่โหมดผู้ชมทันที
     if (!room.spectators.includes(username)) {
       room.spectators.push(username);
     }
     socket.emit('game:msg', 'ที่นั่งบนโต๊ะเต็มแล้ว! คุณได้เข้าร่วมในฐานะ ผู้ชม');
   }
 
-  // เติมบอทถ้าพื้นที่ยังเหลือ
   if (room.mode === 'bot' && (room.players.length + room.waitingQueue.length) < room.maxPlayers) {
     let botIdx = 0;
     while ((room.players.length + room.waitingQueue.length) < room.maxPlayers) {
@@ -574,24 +588,28 @@ function startNewGameRound(room) {
     saveUsersDatabase();
   }
 
+  // จัดไพ่ให้ผู้เล่น (เพื่อให้ Client มีข้อมูลไพ่ก่อนทำแอนิเมชัน)
   room.players.forEach(p => {
     p.hand = [room.deck.pop(), room.deck.pop(), room.deck.pop(), room.deck.pop()];
   });
 
   room.activeTurnIndex = room.dealerIndex;
   
+  // บังคับให้ Client อัปเดตข้อมูลไพ่ทั้งหมดก่อนเริ่มยิงแอนิเมชัน
+  emitRoomState(room);
+
+  // คำนวณเวลาแอนิเมชัน: 4 รอบ x (จำนวนคน * 0.2s) + 1.2s สำหรับเผื่อใบสุดท้ายตกถึงพื้น
+  const activeCount = room.players.filter(p => !p.isWaiting).length;
+  const dealTime = (activeCount * 4 * 200) + 1200;
+
   io.to(room.code).emit('game:dealing_cards');
 
-  const activeCount = room.players.filter(p => !p.isWaiting).length;
-  const dealTime = (activeCount * 4 * 100) + 700;
-
+  // รอจนกว่าแอนิเมชันแจกครบ จึงจะเปิดสถานะพร้อมเล่น
   setTimeout(() => {
     room.cardsDealt = true;
     emitRoomState(room);
     startTurnTimer(room);
   }, dealTime);
-
-  emitRoomState(room);
 }
 
 function startTurnTimer(room) {
@@ -616,6 +634,7 @@ function startTurnTimer(room) {
     return;
   }
 
+  // จับเวลา 30 วิ ถ้าหมดเทิร์นให้เดิมพัน 10 อัตโนมัติ (หรือเทหมดตัวถ้าเงินไม่พอ 10)
   room.timer = setTimeout(() => {
     processPlayerBet(room, currentP, 10);
   }, 30000);
@@ -627,10 +646,12 @@ function processPlayerBet(room, player, amount) {
   if (finalBet < 10) finalBet = 10;
   if (finalBet > maxPossible) finalBet = maxPossible;
 
+  // หักเงินผู้เล่น
   player.chips -= finalBet;
   player.lastBet = finalBet;
   if (USERS[player.username]) USERS[player.username].chips = player.chips;
 
+  // เปิดไพ่กองกลาง
   const communityCard = room.deck.pop() || createDeck().pop();
 
   let highestWinningCard = null;
@@ -644,13 +665,16 @@ function processPlayerBet(room, player, amount) {
 
   const isWin = highestWinningCard !== null;
 
+  // คืนเงิน/หักเงิน ตามกฎคาสิโน
   if (isWin) {
+    // ได้คืนทุน + กำไร 1 เท่าจาก POT
     const wonAmount = finalBet * 2;
-    room.pot -= finalBet;
+    room.pot -= finalBet; // หักเนื้อ POT ออกไปจ่ายให้ผู้เล่น
     player.chips += wonAmount;
     if (USERS[player.username]) USERS[player.username].chips = player.chips;
   } else {
-    room.pot += finalBet;
+    // แพ้ ยอดที่เดิมพันไว้จะเข้าไปสบทบ POT
+    room.pot += finalBet; 
   }
 
   const pName = player.displayName || player.username;

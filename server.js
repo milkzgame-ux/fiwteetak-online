@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
@@ -11,7 +12,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const USERS = {
+// ================= ระบบบันทึกและกู้คืนฐานข้อมูลไฟล์ JSON =================
+const DB_FILE = path.join(__dirname, 'users_db.json');
+
+// บัญชีเริ่มต้น (แอดมินมาตรฐาน)
+const DEFAULT_USERS = {
   "admin": {
     username: "admin",
     password: "admin052063",
@@ -25,6 +30,45 @@ const USERS = {
   }
 };
 
+let USERS = {};
+
+// ฟังก์ชันโหลดข้อมูลผู้ใช้จากไฟล์เมื่อ Server เริ่มรัน
+function loadUsersDatabase() {
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      const data = fs.readFileSync(DB_FILE, 'utf8');
+      USERS = JSON.parse(data);
+      console.log('✅ โหลดข้อมูลผู้เล่นเดิมจาก users_db.json สำเร็จ!');
+    } else {
+      USERS = { ...DEFAULT_USERS };
+      saveUsersDatabase();
+      console.log('สร้างไฟล์ฐานข้อมูลเริ่มต้น users_db.json เรียบร้อย');
+    }
+  } catch (err) {
+    console.error('❌ ไม่สามารถอ่าน users_db.json ได้ รีเซ็ตใช้ค่าเริ่มต้น:', err);
+    USERS = { ...DEFAULT_USERS };
+  }
+
+  // ป้องกันกรณีลืมหรือไม่มีบัญชีแอดมิน ให้คงอยู่เสมอ
+  if (!USERS["admin"]) {
+    USERS["admin"] = { ...DEFAULT_USERS["admin"] };
+    saveUsersDatabase();
+  }
+}
+
+// ฟังก์ชันบันทึกข้อมูลลงไฟล์ทุกครั้งที่มีการเปลี่ยนแปลง
+function saveUsersDatabase() {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(USERS, null, 2), 'utf8');
+  } catch (err) {
+    console.error('❌ บันทึกฐานข้อมูล users_db.json ล้มเหลว:', err);
+  }
+}
+
+// โหลดข้อมูลเข้าสู่ระบบทันทีตอนเปิดเซิร์ฟเวอร์
+loadUsersDatabase();
+
+// ================= ตัวแปรเกมชั่วคราว =================
 const ACTIVE_SESSIONS = {};
 const ROOMS = {};
 
@@ -58,10 +102,11 @@ io.on('connection', (socket) => {
   let currentAuthUser = null;
   let currentRoomId = null;
 
-  // 1. ระบบผู้ใช้
+  // 1. ระบบสมัครสมาชิก
   socket.on('auth:register', ({ username, password }, cb) => {
-    if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบ' });
+    if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
     if (USERS[username]) return cb({ success: false, msg: 'ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว' });
+    
     USERS[username] = {
       username,
       password,
@@ -73,15 +118,17 @@ io.on('connection', (socket) => {
       lastDailyClaim: 0,
       avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' }
     };
+    
+    saveUsersDatabase(); // บันทึกลงไฟล์ทันที
     cb({ success: true, user: sanitizeUser(USERS[username]) });
   });
 
+  // 2. ระบบเข้าสู่ระบบ (พร้อมเด้งเครื่องที่เข้าซ้อน)
   socket.on('auth:login', ({ username, password }, cb) => {
     const user = USERS[username];
     if (!user || user.password !== password) return cb({ success: false, msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
     if (user.isBanned) return cb({ success: false, msg: 'บัญชีนี้ถูกระงับการใช้งาน' });
 
-    // เตะเครื่องเก่าออกทันทีหากเข้าซ้อน
     if (ACTIVE_SESSIONS[username] && ACTIVE_SESSIONS[username] !== socket.id) {
       const oldSocket = io.sockets.sockets.get(ACTIVE_SESSIONS[username]);
       if (oldSocket) {
@@ -96,9 +143,12 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(user) });
   });
 
+  // อัปเดตอวาตาร์
   socket.on('user:update_avatar', ({ avatar }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     USERS[currentAuthUser].avatar = avatar;
+    saveUsersDatabase(); // บันทึกชุดแต่งกาย
+
     if (currentRoomId && ROOMS[currentRoomId]) {
       const p = ROOMS[currentRoomId].players.find(x => x.username === currentAuthUser);
       if (p) p.avatar = avatar;
@@ -107,7 +157,7 @@ io.on('connection', (socket) => {
     cb({ success: true, avatar });
   });
 
-  // 2. แชทกลาง (Global Lobby Chat)
+  // แชทกลางล็อบบี้
   socket.on('chat:global_send', ({ text }) => {
     if (!currentAuthUser || !text.trim()) return;
     io.emit('chat:global_broadcast', {
@@ -117,7 +167,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 3. แชทในห้องเกม (In-Room Table Chat)
+  // แชทในโต๊ะเกม
   socket.on('chat:room_send', ({ text }) => {
     if (!currentRoomId || !currentAuthUser || !text.trim()) return;
     io.to(currentRoomId).emit('chat:room_broadcast', {
@@ -126,7 +176,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 4. รับโบนัสฟรี 2,000 / วัน
+  // รับโบนัสรายวัน 2,000
   socket.on('user:claim_daily', (_, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const user = USERS[currentAuthUser];
@@ -138,10 +188,11 @@ io.on('connection', (socket) => {
     }
     user.chips += 2000;
     user.lastDailyClaim = now;
+    saveUsersDatabase(); // บันทึกยอดเงินใหม่
     cb({ success: true, chips: user.chips });
   });
 
-  // 5. แอดมิน: เร่งเวลา & จัดการผู้ใช้
+  // แอดมิน: เร่งเวลา
   socket.on('admin:skip_day', (_, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false, msg: 'ปฏิเสธสิทธิ์' });
     const user = USERS[currentAuthUser];
@@ -150,9 +201,11 @@ io.on('connection', (socket) => {
       if (u.bankSavings > 0) u.bankSavings = Math.floor(u.bankSavings * 1.05);
       if (u.bankDebt > 0) u.bankDebt = Math.floor(u.bankDebt * 1.05);
     }
+    saveUsersDatabase();
     cb({ success: true, user: sanitizeUser(user) });
   });
 
+  // แอดมิน: จัดการผู้เล่น
   socket.on('admin:get_players', (_, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false });
     cb({ success: true, list: Object.values(USERS).map(sanitizeUser) });
@@ -165,10 +218,11 @@ io.on('connection', (socket) => {
     if (addChips) u.chips += Number(addChips);
     if (clearDebt) u.bankDebt = 0;
     if (toggleBan !== undefined) u.isBanned = toggleBan;
+    saveUsersDatabase();
     cb({ success: true, user: sanitizeUser(u) });
   });
 
-  // 6. ธนาคาร
+  // ธนาคาร
   socket.on('bank:action', ({ type, amount }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const u = USERS[currentAuthUser];
@@ -190,10 +244,11 @@ io.on('connection', (socket) => {
       u.bankSavings -= wit;
       u.chips += wit;
     }
+    saveUsersDatabase();
     cb({ success: true, user: sanitizeUser(u) });
   });
 
-  // 7. จัดการห้อง
+  // สร้างห้อง
   socket.on('room:create', ({ roomName, maxPlayers, password, mode }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -226,6 +281,7 @@ io.on('connection', (socket) => {
     broadcastLobbyRooms();
   });
 
+  // เข้าร่วมห้อง
   socket.on('room:join', ({ roomCode, password }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const room = ROOMS[roomCode];
@@ -263,7 +319,7 @@ io.on('connection', (socket) => {
     checkAndCleanEmptyRoom(currentRoomId);
   });
 
-  // นั่งลงเล่น (หากเข้ากลางเกมจะติดสถานะ waiting จนกว่า Pot หมด)
+  // นั่งลงเล่น
   socket.on('game:sit_down', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -293,7 +349,6 @@ io.on('connection', (socket) => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
 
-    // ผู้เล่นที่รอคิวจะเข้าโต๊ะได้เมื่อ Pot = 0
     if (room.pot === 0 && room.waitingQueue.length > 0) {
       while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
         room.players.push(room.waitingQueue.shift());
@@ -302,7 +357,7 @@ io.on('connection', (socket) => {
     startNewGameRound(room);
   });
 
-  // วางเดิมพัน (ล็อกสิทธิ์เฉพาะเทิร์นตนเอง)
+  // วางเดิมพัน
   socket.on('game:bet', ({ amount }) => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -413,6 +468,7 @@ function startNewGameRound(room) {
       room.pot += ante;
       if (USERS[p.username]) USERS[p.username].chips = p.chips;
     });
+    saveUsersDatabase(); // บันทึกชิปที่ถูกหัก Ante
   }
 
   room.players.forEach(p => {
@@ -493,6 +549,8 @@ function processPlayerBet(room, player, amount) {
     room.pot += finalBet;
   }
 
+  saveUsersDatabase(); // บันทึกยอดเหรียญหลังการตัดสิน
+
   io.to(room.code).emit('game:showdown_result', {
     player: player.username,
     communityCard,
@@ -508,7 +566,6 @@ function processPlayerBet(room, player, amount) {
 }
 
 function checkNextTurnOrRoundEnd(room) {
-  // เมื่อ Pot หมด
   if (room.pot <= 0) {
     room.pot = 0;
     room.isGameRunning = false;
@@ -520,7 +577,7 @@ function checkNextTurnOrRoundEnd(room) {
   room.activeTurnIndex++;
 
   if (room.activeTurnIndex >= room.players.length) {
-    // ตรวจสอบเงื่อนไข 80% Pot Split ปันผล
+    // กองกลางแตกปันผล 80%
     const activeCount = room.players.length;
     const threshold = activeCount * 400;
 
@@ -532,6 +589,7 @@ function checkNextTurnOrRoundEnd(room) {
         if (USERS[p.username]) USERS[p.username].chips = p.chips;
       });
       room.pot -= (perPlayer * activeCount);
+      saveUsersDatabase(); // บันทึกเงินปันผล
 
       io.to(room.code).emit('game:pot_split_jackpot', {
         amountDistributed: perPlayer * activeCount,
@@ -623,5 +681,5 @@ function emitRoomState(room) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server online on port ${PORT}`);
+  console.log(`FiwTeeTak Server with Persistent DB running on port ${PORT}`);
 });

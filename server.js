@@ -92,7 +92,6 @@ io.on('connection', (socket) => {
   let currentAuthUser = null;
   let currentRoomId = null;
 
-  // กู้คืนฐานข้อมูลจาก Client กรณี Render รีสตาร์ทแล้วไฟล์ถูกล้าง
   socket.on('db:sync_restore', ({ backupData }) => {
     if (backupData && typeof backupData === 'object') {
       let updated = false;
@@ -102,10 +101,7 @@ io.on('connection', (socket) => {
           updated = true;
         }
       }
-      if (updated) {
-        saveUsersDatabase();
-        console.log('🔄 กู้คืนฐานข้อมูลจาก Client สำเร็จ!');
-      }
+      if (updated) saveUsersDatabase();
     }
   });
 
@@ -147,11 +143,8 @@ io.on('connection', (socket) => {
     let reconnectData = null;
     if (DISCONNECTED_PLAYERS[username]) {
       const rCode = DISCONNECTED_PLAYERS[username].roomCode;
-      if (ROOMS[rCode]) {
-        reconnectData = { roomCode: rCode, roomName: ROOMS[rCode].name };
-      } else {
-        delete DISCONNECTED_PLAYERS[username];
-      }
+      if (ROOMS[rCode]) reconnectData = { roomCode: rCode, roomName: ROOMS[rCode].name };
+      else delete DISCONNECTED_PLAYERS[username];
     }
 
     cb({ success: true, user: sanitizeUser(user), allDb: USERS, reconnectData });
@@ -383,7 +376,6 @@ io.on('connection', (socket) => {
     } else {
       room.players.push(pObj);
     }
-
     emitRoomState(room);
   });
 
@@ -439,12 +431,9 @@ io.on('connection', (socket) => {
 
           if (room.isGameRunning && room.players[room.activeTurnIndex] && room.players[room.activeTurnIndex].username === currentAuthUser) {
             clearTimeout(room.timer);
-            setTimeout(() => {
-              processPlayerBet(room, player, 10);
-            }, 1500);
+            setTimeout(() => { processPlayerBet(room, player, 10); }, 1500);
           }
 
-          // นับเวลา 3 นาที (180 วิ) ถ้าขาดการเชื่อมต่อนานจะเด้งออกจากห้อง
           const tId = setTimeout(() => {
             handlePlayerLeave(socket, room.code, currentAuthUser);
             delete DISCONNECTED_PLAYERS[currentAuthUser];
@@ -566,15 +555,15 @@ function startNewGameRound(room) {
 
   room.activeTurnIndex = room.dealerIndex;
   
-  // ส่งสัญญาณให้หน้าบ้านทำอนิเมชันแจกไพ่พุ่งออกจากสำรับ
+  // แจ้งลูกข่ายเพื่อยิงแอนิเมชัน
   io.to(room.code).emit('game:dealing_cards');
 
-  // รอให้อนิเมชันแจกไพ่บินไปถึงโต๊ะ (1.2 วิ) จึงเปิดสถานะว่าไพ่ถึงตัวแล้ว
+  // รออนิเมชันแจกไพ่บินเสร็จ (ประมาณ 2-2.5 วิ) ค่อยให้ไพ่คว่ำปรากฏและเริ่มเวลา
   setTimeout(() => {
     room.cardsDealt = true;
     emitRoomState(room);
     startTurnTimer(room);
-  }, 1200);
+  }, 2500);
 
   emitRoomState(room);
 }
@@ -586,10 +575,11 @@ function startTurnTimer(room) {
 
   const currentDisplayName = currentP.displayName || currentP.username;
   
+  // เปลี่ยนเป็น 30 วินาทีตามที่ขอ
   io.to(room.code).emit('game:turn_start', {
     activeUsername: currentP.username,
     activeDisplayName: currentDisplayName,
-    timeoutSec: 180
+    timeoutSec: 30
   });
 
   if (currentP.isBot || currentP.isBotTemporary) {
@@ -597,13 +587,14 @@ function startTurnTimer(room) {
       const maxBet = Math.min(currentP.chips, room.pot);
       const betAmt = Math.min(Math.max(10, Math.floor(Math.random() * (maxBet - 10 + 1)) + 10), maxBet);
       processPlayerBet(room, currentP, betAmt);
-    }, 1800);
+    }, 2000);
     return;
   }
 
+  // ตัวจับเวลาของ Server (30 วินาที)
   room.timer = setTimeout(() => {
-    processPlayerBet(room, currentP, 10);
-  }, 180000);
+    processPlayerBet(room, currentP, 10); // หมดเวลาจับหมอบ/เทขั้นต่ำ
+  }, 30000);
 }
 
 function processPlayerBet(room, player, amount) {
@@ -672,7 +663,6 @@ function checkNextTurnOrRoundEnd(room) {
     room.isGameRunning = false;
     room.cardsDealt = false;
 
-    // ถ้า Pot หมด ให้เตะผู้เล่นที่ขาดการเชื่อมต่อทันที
     const offlinePlayers = room.players.filter(p => p.isOffline);
     offlinePlayers.forEach(p => {
       handlePlayerLeave(null, room.code, p.username);
@@ -682,7 +672,6 @@ function checkNextTurnOrRoundEnd(room) {
       }
     });
 
-    // ดึงผู้เล่นที่รอคิว (Waiting) เข้ามาเล่นในรอบถัดไปเมื่อ Pot เป็น 0
     while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
       const waitingP = room.waitingQueue.shift();
       waitingP.isWaiting = false;

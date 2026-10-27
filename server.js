@@ -12,10 +12,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// ================= ระบบบันทึกและกู้คืนฐานข้อมูลไฟล์ JSON =================
 const DB_FILE = path.join(__dirname, 'users_db.json');
 
-// บัญชีเริ่มต้น (แอดมินมาตรฐาน)
 const DEFAULT_USERS = {
   "admin": {
     username: "admin",
@@ -32,43 +30,34 @@ const DEFAULT_USERS = {
 
 let USERS = {};
 
-// ฟังก์ชันโหลดข้อมูลผู้ใช้จากไฟล์เมื่อ Server เริ่มรัน
 function loadUsersDatabase() {
   try {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, 'utf8');
       USERS = JSON.parse(data);
-      console.log('✅ โหลดข้อมูลผู้เล่นเดิมจาก users_db.json สำเร็จ!');
     } else {
       USERS = { ...DEFAULT_USERS };
       saveUsersDatabase();
-      console.log('สร้างไฟล์ฐานข้อมูลเริ่มต้น users_db.json เรียบร้อย');
     }
   } catch (err) {
-    console.error('❌ ไม่สามารถอ่าน users_db.json ได้ รีเซ็ตใช้ค่าเริ่มต้น:', err);
     USERS = { ...DEFAULT_USERS };
   }
-
-  // ป้องกันกรณีลืมหรือไม่มีบัญชีแอดมิน ให้คงอยู่เสมอ
   if (!USERS["admin"]) {
     USERS["admin"] = { ...DEFAULT_USERS["admin"] };
     saveUsersDatabase();
   }
 }
 
-// ฟังก์ชันบันทึกข้อมูลลงไฟล์ทุกครั้งที่มีการเปลี่ยนแปลง
 function saveUsersDatabase() {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(USERS, null, 2), 'utf8');
   } catch (err) {
-    console.error('❌ บันทึกฐานข้อมูล users_db.json ล้มเหลว:', err);
+    console.error('Error saving database:', err);
   }
 }
 
-// โหลดข้อมูลเข้าสู่ระบบทันทีตอนเปิดเซิร์ฟเวอร์
 loadUsersDatabase();
 
-// ================= ตัวแปรเกมชั่วคราว =================
 const ACTIVE_SESSIONS = {};
 const ROOMS = {};
 
@@ -94,15 +83,14 @@ const BOT_PRESETS = [
   { name: 'Jesse', hat: 'sombrero', hatColor: '#8b0000', skin: '#e0ac69', sleeve: '#14532d', badge: 'feather' },
   { name: 'Belle', hat: 'gambler', hatColor: '#1c1917', skin: '#fcd0a1', sleeve: '#581c87', badge: 'cards' },
   { name: 'Doc', hat: 'derby', hatColor: '#3d2817', skin: '#ffd1a4', sleeve: '#78350f', badge: 'cross' },
-  { name: 'Billy', hat: 'cattleman', hatColor: '#713f12', skin: '#c68642', sleeve: '#047857', badge: 'star' },
-  { name: 'Annie', hat: 'sombrero', hatColor: '#b45309', skin: '#fde047', sleeve: '#b91c1c', badge: 'feather' }
+  { name: 'Billy', hat: 'outback', hatColor: '#713f12', skin: '#c68642', sleeve: '#047857', badge: 'star' },
+  { name: 'Annie', hat: 'fedora', hatColor: '#b45309', skin: '#fde047', sleeve: '#b91c1c', badge: 'feather' }
 ];
 
 io.on('connection', (socket) => {
   let currentAuthUser = null;
   let currentRoomId = null;
 
-  // 1. ระบบสมัครสมาชิก
   socket.on('auth:register', ({ username, password }, cb) => {
     if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
     if (USERS[username]) return cb({ success: false, msg: 'ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว' });
@@ -118,12 +106,10 @@ io.on('connection', (socket) => {
       lastDailyClaim: 0,
       avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' }
     };
-    
-    saveUsersDatabase(); // บันทึกลงไฟล์ทันที
+    saveUsersDatabase();
     cb({ success: true, user: sanitizeUser(USERS[username]) });
   });
 
-  // 2. ระบบเข้าสู่ระบบ (พร้อมเด้งเครื่องที่เข้าซ้อน)
   socket.on('auth:login', ({ username, password }, cb) => {
     const user = USERS[username];
     if (!user || user.password !== password) return cb({ success: false, msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
@@ -143,11 +129,10 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(user) });
   });
 
-  // อัปเดตอวาตาร์
   socket.on('user:update_avatar', ({ avatar }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     USERS[currentAuthUser].avatar = avatar;
-    saveUsersDatabase(); // บันทึกชุดแต่งกาย
+    saveUsersDatabase();
 
     if (currentRoomId && ROOMS[currentRoomId]) {
       const p = ROOMS[currentRoomId].players.find(x => x.username === currentAuthUser);
@@ -157,7 +142,6 @@ io.on('connection', (socket) => {
     cb({ success: true, avatar });
   });
 
-  // แชทกลางล็อบบี้
   socket.on('chat:global_send', ({ text }) => {
     if (!currentAuthUser || !text.trim()) return;
     io.emit('chat:global_broadcast', {
@@ -167,7 +151,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // แชทในโต๊ะเกม
   socket.on('chat:room_send', ({ text }) => {
     if (!currentRoomId || !currentAuthUser || !text.trim()) return;
     io.to(currentRoomId).emit('chat:room_broadcast', {
@@ -176,7 +159,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // รับโบนัสรายวัน 2,000
   socket.on('user:claim_daily', (_, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const user = USERS[currentAuthUser];
@@ -188,11 +170,10 @@ io.on('connection', (socket) => {
     }
     user.chips += 2000;
     user.lastDailyClaim = now;
-    saveUsersDatabase(); // บันทึกยอดเงินใหม่
+    saveUsersDatabase();
     cb({ success: true, chips: user.chips });
   });
 
-  // แอดมิน: เร่งเวลา
   socket.on('admin:skip_day', (_, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false, msg: 'ปฏิเสธสิทธิ์' });
     const user = USERS[currentAuthUser];
@@ -205,7 +186,6 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(user) });
   });
 
-  // แอดมิน: จัดการผู้เล่น
   socket.on('admin:get_players', (_, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false });
     cb({ success: true, list: Object.values(USERS).map(sanitizeUser) });
@@ -222,7 +202,6 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(u) });
   });
 
-  // ธนาคาร
   socket.on('bank:action', ({ type, amount }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const u = USERS[currentAuthUser];
@@ -248,7 +227,6 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(u) });
   });
 
-  // สร้างห้อง
   socket.on('room:create', ({ roomName, maxPlayers, password, mode }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -268,8 +246,7 @@ io.on('connection', (socket) => {
       activeTurnIndex: 0,
       dealerIndex: 0,
       isGameRunning: false,
-      communityCardHistory: [],
-      winningHistory: [],
+      roundHistory: [], // เก็บประวัติแบบรอบต่อรอบ
       timer: null
     };
 
@@ -281,7 +258,6 @@ io.on('connection', (socket) => {
     broadcastLobbyRooms();
   });
 
-  // เข้าร่วมห้อง
   socket.on('room:join', ({ roomCode, password }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const room = ROOMS[roomCode];
@@ -298,7 +274,6 @@ io.on('connection', (socket) => {
     broadcastLobbyRooms();
   });
 
-  // ลุกจากโต๊ะ
   socket.on('game:stand_up', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -319,7 +294,6 @@ io.on('connection', (socket) => {
     checkAndCleanEmptyRoom(currentRoomId);
   });
 
-  // นั่งลงเล่น
   socket.on('game:sit_down', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -344,7 +318,7 @@ io.on('connection', (socket) => {
     emitRoomState(room);
   });
 
-  // เริ่มเกมส์
+  // กฎบังคับ: ต้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปจึงจะกดเริ่มเกมได้
   socket.on('game:start_click', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -354,10 +328,15 @@ io.on('connection', (socket) => {
         room.players.push(room.waitingQueue.shift());
       }
     }
+
+    const totalActive = room.players.length;
+    if (totalActive < 2) {
+      return socket.emit('game:msg', '⚠️ ต้องมีผู้เล่นอย่างน้อย 2 คนขึ้นไปจึงจะสามารถเริ่มเล่นได้!');
+    }
+
     startNewGameRound(room);
   });
 
-  // วางเดิมพัน
   socket.on('game:bet', ({ amount }) => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -430,7 +409,6 @@ function joinRoomInternal(socket, roomCode, username) {
     room.players.push(playerObj);
   }
 
-  // เติมบอท
   if (room.mode === 'bot' && (room.players.length + room.waitingQueue.length) < room.maxPlayers) {
     let botIdx = 0;
     while ((room.players.length + room.waitingQueue.length) < room.maxPlayers) {
@@ -452,7 +430,11 @@ function joinRoomInternal(socket, roomCode, username) {
   emitRoomState(room);
 
   if (!room.isGameRunning) {
-    io.to(room.code).emit('game:need_start_click', 'โต๊ะพร้อมแล้ว! กดเริ่มเกมส์เพื่อเริ่มเล่นรอบแรก (หัก Ante 50)');
+    if (room.players.length >= 2) {
+      io.to(room.code).emit('game:need_start_click', 'โต๊ะพร้อมแล้ว! กดเริ่มเกมส์เพื่อเริ่มเล่นรอบแรก (หัก Ante 50)');
+    } else {
+      io.to(room.code).emit('game:need_start_click', 'กำลังรอผู้เล่นอย่างน้อย 2 คนเพื่อเริ่มเกม...');
+    }
   }
 }
 
@@ -468,7 +450,7 @@ function startNewGameRound(room) {
       room.pot += ante;
       if (USERS[p.username]) USERS[p.username].chips = p.chips;
     });
-    saveUsersDatabase(); // บันทึกชิปที่ถูกหัก Ante
+    saveUsersDatabase();
   }
 
   room.players.forEach(p => {
@@ -476,6 +458,10 @@ function startNewGameRound(room) {
   });
 
   room.activeTurnIndex = room.dealerIndex;
+  
+  // แจ้งเตือนแอนิเมชันแจกไพ่ไปยังทุกหน้าจอ
+  io.to(room.code).emit('game:dealing_cards');
+
   emitRoomState(room);
   startTurnTimer(room);
 }
@@ -515,11 +501,6 @@ function processPlayerBet(room, player, amount) {
   if (USERS[player.username]) USERS[player.username].chips = player.chips;
 
   const communityCard = room.deck.pop() || createDeck().pop();
-  room.communityCardHistory.unshift({
-    card: communityCard,
-    by: player.username,
-    round: room.round
-  });
 
   let highestWinningCard = null;
   player.hand.forEach(c => {
@@ -537,19 +518,23 @@ function processPlayerBet(room, player, amount) {
     room.pot -= finalBet;
     player.chips += wonAmount;
     if (USERS[player.username]) USERS[player.username].chips = player.chips;
-
-    room.winningHistory.unshift({
-      winner: player.username,
-      winningCard: highestWinningCard,
-      communityCard: communityCard,
-      amount: finalBet,
-      round: room.round
-    });
   } else {
     room.pot += finalBet;
   }
 
-  saveUsersDatabase(); // บันทึกยอดเหรียญหลังการตัดสิน
+  // จัดเก็บบันทึกประวัติรอบต่อรอบ
+  room.roundHistory.unshift({
+    round: room.round,
+    player: player.username,
+    betAmount: finalBet,
+    communityCard,
+    winningCard: highestWinningCard,
+    isWin,
+    potRemaining: room.pot,
+    timestamp: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+  });
+
+  saveUsersDatabase();
 
   io.to(room.code).emit('game:showdown_result', {
     player: player.username,
@@ -577,7 +562,6 @@ function checkNextTurnOrRoundEnd(room) {
   room.activeTurnIndex++;
 
   if (room.activeTurnIndex >= room.players.length) {
-    // กองกลางแตกปันผล 80%
     const activeCount = room.players.length;
     const threshold = activeCount * 400;
 
@@ -589,7 +573,7 @@ function checkNextTurnOrRoundEnd(room) {
         if (USERS[p.username]) USERS[p.username].chips = p.chips;
       });
       room.pot -= (perPlayer * activeCount);
-      saveUsersDatabase(); // บันทึกเงินปันผล
+      saveUsersDatabase();
 
       io.to(room.code).emit('game:pot_split_jackpot', {
         amountDistributed: perPlayer * activeCount,
@@ -674,12 +658,11 @@ function emitRoomState(room) {
     activeTurnIndex: room.activeTurnIndex,
     dealerIndex: room.dealerIndex,
     isGameRunning: room.isGameRunning,
-    historyCards: room.communityCardHistory,
-    winningHistory: room.winningHistory
+    roundHistory: room.roundHistory || []
   });
 }
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`FiwTeeTak Server with Persistent DB running on port ${PORT}`);
+  console.log(`Server online with round-by-round engine on port ${PORT}`);
 });

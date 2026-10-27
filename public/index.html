@@ -42,7 +42,7 @@
       100% { box-shadow: 0 0 30px #fef08a, 0 0 55px #eab308; }
     }
 
-    .card-fly { transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .card-fly { transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
     .chat-bubble { animation: popIn 0.3s ease-out; }
     @keyframes popIn {
       0% { transform: scale(0.6) translateY(10px); opacity: 0; }
@@ -78,18 +78,7 @@
     <h3 class="text-xl font-bold text-amber-400 font-rye mb-1">กรุณาหมุนจอเป็นแนวนอน</h3>
   </div>
 
-  <div id="modalReconnect" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4">
-    <div class="w-full max-w-sm bg-stone-900 border-2 border-amber-500 rounded-2xl p-5 shadow-2xl text-center space-y-3">
-      <div class="text-amber-400 text-3xl"><i class="fa-solid fa-rotate animate-spin"></i></div>
-      <h3 class="text-base font-bold text-amber-300">พบห้องที่กำลังเล่นค้างอยู่!</h3>
-      <p class="text-xs text-stone-300">คุณมีเกมที่กำลังเล่นค้างอยู่ในห้อง <b id="lblReconnectRoomName" class="text-amber-400">-</b> ต้องการกลับเข้าสู่เกมเดิมหรือไม่?</p>
-      <div class="flex gap-2 pt-2">
-        <button id="btnReconnectReject" class="flex-1 py-2 rounded bg-stone-800 hover:bg-stone-700 text-stone-400 text-xs font-bold">ออกจากห้อง</button>
-        <button id="btnReconnectAccept" class="flex-1 py-2 rounded bg-amber-600 hover:bg-amber-500 text-stone-950 text-xs font-bold">กลับเข้าห้อง</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- AUTH SCREEN -->
   <div id="screenAuth" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
     <div class="w-full max-w-sm bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl">
       <div class="text-center mb-4">
@@ -122,6 +111,7 @@
     </div>
   </div>
 
+  <!-- LOBBY SCREEN -->
   <div id="screenLobby" class="hidden fixed inset-0 z-40 flex flex-col bg-stone-950 p-2 sm:p-4 max-w-6xl mx-auto">
     <header class="bg-stone-900 border border-amber-800/80 rounded-xl p-2.5 px-3 sm:px-5 mb-3 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-2">
       <div class="flex items-center gap-3">
@@ -181,6 +171,7 @@
     </div>
   </div>
 
+  <!-- Modals -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
@@ -225,7 +216,7 @@
           </div>
         </div>
         <div>
-          <label class="block text-stone-300 mb-1">ตราประดับหมวก (Badge)</label>
+          <label class="block text-stone-300 mb-1">ตราประดับหมวก</label>
           <select id="selHatBadge" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-white">
             <option value="star">ดาวนายอำเภอทอง (Sheriff Star)</option>
             <option value="feather">ขนนกอินทรีแดง (Feather)</option>
@@ -252,7 +243,7 @@
           <p>1. ทุกคนบนโต๊ะหัก <b>ค่าต๋ง (Ante 50)</b> เข้ากองกลาง (POT) เมื่อเริ่มเกมส์</p>
           <p>2. ผู้เล่นจะได้ไพ่ในมือ <b>4 ใบ</b></p>
           <p>3. คุณสามารถเดิมพันได้สูงสุดเท่าที่ชิปคุณมี และห้ามเกินยอด POT โดยบังคับ <b>ขั้นต่ำ 10 เหรียญ</b></p>
-          <p>4. <b>มีเวลา 30 วินาที</b> หากหมดเวลาจะบังคับลงขั้นต่ำ (หรือเทหมดถ้าเงินไม่พอ 10)</p>
+          <p>4. <b>มีเวลา 30 วินาที</b> ในการตัดสินใจ หากหมดเวลาจะถูกบังคับลงขั้นต่ำอัตโนมัติ</p>
         </div>
         <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
           <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-trophy"></i> เงื่อนไขการชนะเงิน</h4>
@@ -266,7 +257,7 @@
   </div>
 
   <div id="modalAdmin" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
-    <div class="w-full max-w-lg bg-stone-900 border-2 border-amber-500 rounded-2xl p-4 shadow-2xl flex flex-col max-h-[85vh]">
+    <div class="w-full max-w-lg bg-stone-900 border-2 border-amber-500 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
         <h3 class="text-base font-bold text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-amber-500"></i> แผงควบคุมระบบ (Admin Console)</h3>
         <button id="btnCloseAdmin" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
@@ -380,7 +371,7 @@
       </div>
     </div>
 
-    <!-- โต๊ะไม้และสักหลาด (ใช้ Flex Layout แกนตั้งป้องกันการซ้อนทับกัน) -->
+    <!-- โต๊ะไม้และสักหลาด -->
     <div class="relative flex-1 my-1 flex items-center justify-center overflow-hidden">
       <div class="table-wood-rim w-[82%] h-[78%] flex items-center justify-center relative">
         <div class="poker-saloon-table w-full h-full relative flex flex-col items-center justify-center">
@@ -391,7 +382,7 @@
           </div>
 
           <!-- โซนกลางโต๊ะ: เรียงจากบนลงล่าง สำรับไพ่ -> ชิป POT -> ไพ่กองกลาง -> ข้อความ/ปุ่ม -->
-          <div class="relative z-10 flex flex-col items-center justify-center space-y-4 w-full pointer-events-none mt-2">
+          <div class="relative z-10 flex flex-col items-center justify-center space-y-3 w-full pointer-events-none mt-2">
             
             <div id="deckCenterPile" class="relative z-10">
               <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl flex items-center justify-center">
@@ -404,6 +395,7 @@
               <span id="lblCenterPotText" class="text-sm font-black text-amber-300 font-rye">0</span>
             </div>
 
+            <!-- ไพ่กองกลาง (มีป้ายบอกชัดเจน) -->
             <div id="boxShowcase" class="flex items-center justify-center gap-5 min-h-[90px] w-full">
               <div class="flex flex-col items-center">
                 <span class="text-[10px] text-amber-100 font-bold mb-1 drop-shadow">ไพ่กองกลาง</span>
@@ -426,7 +418,7 @@
         </div>
       </div>
 
-      <!-- เลเยอร์ที่นั่งผู้เล่นและแอนิเมชัน ให้ Z-Index สูงสุดเพื่อไม่ให้โต๊ะบังตัวละครเด็ดขาด -->
+      <!-- เลเยอร์ที่นั่งผู้เล่นและแอนิเมชัน -->
       <div id="seatsContainer" class="absolute inset-0 pointer-events-none z-30"></div>
       <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-40"></div>
 
@@ -495,7 +487,6 @@
     let isSpectating = false;
     let currentRoomState = null;
     let tempHatColor = '#4a2e18';
-    let pendingReconnectRoomCode = null;
     const dealtCardsCount = {};
 
     function saveLocalDbBackup(allDb) {
@@ -524,7 +515,6 @@
     const modalWardrobe = document.getElementById('modalWardrobe');
     const modalHistory = document.getElementById('modalHistory');
     const modalRules = document.getElementById('modalRules');
-    const modalReconnect = document.getElementById('modalReconnect');
     const btnAdminPanel = document.getElementById('btnAdminPanel');
 
     document.getElementById('btnOpenRulesLobby').onclick = () => modalRules.classList.remove('hidden');
@@ -532,7 +522,6 @@
     document.getElementById('btnCloseRules').onclick = () => modalRules.classList.add('hidden');
 
     function resetCommunityShowcase() {
-      document.getElementById('boxShowcase').classList.remove('hidden');
       const commBox = document.getElementById('cardCommunity');
       commBox.className = "w-[52px] h-[72px] bg-stone-900 border-2 border-stone-700 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl text-stone-400";
       commBox.innerHTML = "?";
@@ -647,34 +636,12 @@
           err.innerText = '';
           currentUser = res.user;
           saveLocalDbBackup({ [u]: res.user });
-          
           screenAuth.classList.add('hidden');
-
-          if (res.reconnectData) {
-            pendingReconnectRoomCode = res.reconnectData.roomCode;
-            document.getElementById('lblReconnectRoomName').innerText = res.reconnectData.roomName;
-            modalReconnect.classList.remove('hidden');
-          } else {
-            screenLobby.classList.remove('hidden');
-            updateLobbyUI();
-          }
+          screenLobby.classList.remove('hidden');
+          updateLobbyUI();
         }
       });
       setTimeout(() => { if (!responded) err.innerText = 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณารอสักครู่...'; }, 3000);
-    };
-
-    document.getElementById('btnReconnectAccept').onclick = () => {
-      modalReconnect.classList.add('hidden');
-      socket.emit('room:confirm_reconnect', { roomCode: pendingReconnectRoomCode, accept: true }, (res) => {
-        if (res.success) { enterGameScreen(pendingReconnectRoomCode); }
-        else { screenLobby.classList.remove('hidden'); updateLobbyUI(); }
-      });
-    };
-    document.getElementById('btnReconnectReject').onclick = () => {
-      modalReconnect.classList.add('hidden');
-      socket.emit('room:confirm_reconnect', { roomCode: pendingReconnectRoomCode, accept: false }, () => {
-        screenLobby.classList.remove('hidden'); updateLobbyUI();
-      });
     };
 
     document.getElementById('btnLogoutMain').onclick = () => {
@@ -900,8 +867,8 @@
         <div class="bg-stone-800/80 border border-stone-700 rounded-xl p-2.5 flex justify-between items-center text-xs">
           <div>
             <div class="font-bold text-amber-300">${r.name} ${r.hasPassword ? '🔒' : ''}</div>
-            <div class="text-[10px] text-stone-400">#${r.code} | คน: ${r.players}/${r.maxPlayers}</div>
-            <div class="text-[10px] text-amber-500">POT: ${r.pot.toLocaleString()}</div>
+            <div class="text-[10px] text-stone-400">#${r.code} | คน: ${r.players}/${r.maxPlayers} (${r.mode === 'bot' ? 'เล่นกับบอท' : 'เล่นกับคน'})</div>
+            <div class="text-[10px] text-amber-500 font-bold">POT: ${r.pot.toLocaleString()} 🪙</div>
           </div>
           <button onclick="joinRoom('${r.code}', ${r.hasPassword})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1.5 rounded text-xs">
             เข้าร่วม
@@ -1008,13 +975,7 @@
       updateHeroHandVisuals(me, state);
       checkPlayerTurnLock(state);
       
-      if (!state.isGameRunning) {
-        document.getElementById('boxShowcase').classList.add('hidden');
-      } else {
-        document.getElementById('boxShowcase').classList.remove('hidden');
-      }
-      
-      // บังคับ Render ที่นั่งให้เห็นตัวละครทุกคนทันที
+      // บังคับ Render ตัวละครทันทีที่เข้าห้องมาเห็นทันที!
       renderTopDownSeats(state.players, state.activeTurnIndex, state.isGameRunning, state.cardsDealt);
     });
 
@@ -1042,11 +1003,9 @@
       }
     }
 
-    // แอนิเมชันแจกไพ่ทีละใบ 4 ใบให้ทุกคน
+    // แอนิเมชันแจกไพ่ทีละใบจนครบ 4 ใบ
     socket.on('game:dealing_cards', () => {
       resetCommunityShowcase();
-      document.getElementById('boxShowcase').classList.remove('hidden');
-      
       const layer = document.getElementById('dealAnimationLayer');
       layer.innerHTML = '';
       
@@ -1105,7 +1064,7 @@
 
           }, delayMs);
           
-          delayMs += 180;
+          delayMs += 160;
         });
       }
     });
@@ -1239,7 +1198,6 @@
       const targetName = activeDisplayName || activeUsername;
       document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `รอ ${targetName} เดิมพัน...`;
       resetCommunityShowcase();
-      document.getElementById('boxShowcase').classList.remove('hidden');
       
       setBettingControlsEnabled(isMe);
 
@@ -1268,12 +1226,13 @@
       setBettingControlsEnabled(false);
     };
 
-    socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount, potNow }) => {
+    socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount, potNow, playerChipsNow }) => {
       document.getElementById('hudPot').innerText = potNow.toLocaleString();
       document.getElementById('lblCenterPotText').innerText = potNow.toLocaleString();
 
+      // เปิดหงายไพ่กองกลางให้เห็นชัดเจนทันที
       const commBox = document.getElementById('cardCommunity');
-      commBox.className = `w-[52px] h-[72px] bg-white rounded-lg flex flex-col items-center justify-center font-bold text-base shadow-2xl ${communityCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
+      commBox.className = `w-[52px] h-[72px] bg-white rounded-lg flex flex-col items-center justify-center font-bold text-base shadow-2xl border-2 border-stone-300 ${communityCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
       commBox.innerHTML = `<span>${communityCard.rank}</span><span>${communityCard.suit}</span>`;
 
       const winBox = document.getElementById('boxWinningReveal');

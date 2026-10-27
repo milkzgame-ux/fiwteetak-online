@@ -42,10 +42,7 @@
       100% { box-shadow: 0 0 30px #fef08a, 0 0 55px #eab308; }
     }
 
-    /* แอนิเมชันแจกไพ่หน่วงเวลาให้ช้าลงเป็น 0.8s */
-    .card-fly {
-      transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
+    .card-fly { transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
     .chat-bubble { animation: popIn 0.3s ease-out; }
     @keyframes popIn {
@@ -94,7 +91,6 @@
     </div>
   </div>
 
-  <!-- AUTH SCREEN -->
   <div id="screenAuth" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
     <div class="w-full max-w-sm bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl">
       <div class="text-center mb-4">
@@ -127,7 +123,6 @@
     </div>
   </div>
 
-  <!-- LOBBY SCREEN -->
   <div id="screenLobby" class="hidden fixed inset-0 z-40 flex flex-col bg-stone-950 p-2 sm:p-4 max-w-6xl mx-auto">
     <header class="bg-stone-900 border border-amber-800/80 rounded-xl p-2.5 px-3 sm:px-5 mb-3 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-2">
       <div class="flex items-center gap-3">
@@ -143,13 +138,13 @@
           <span id="lblPlayerChips" class="font-bold text-amber-300">0</span>
         </div>
         <button id="btnOpenWardrobe" class="bg-stone-800 hover:bg-stone-700 border border-amber-600/60 px-2.5 py-1 rounded-lg text-xs text-amber-300 font-semibold flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-hat-cowboy"></i> แต่งตัว & ชื่อ
+          <i class="fa-solid fa-hat-cowboy"></i> แต่งตัว
         </button>
         <button id="btnOpenRulesLobby" class="bg-stone-800 hover:bg-stone-700 border border-amber-600/60 px-2.5 py-1 rounded-lg text-xs text-amber-300 font-semibold flex items-center gap-1.5 transition">
           <i class="fa-solid fa-book"></i> กติกา
         </button>
         <button id="btnDailyBonus" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-stone-950 font-bold px-2 py-1 rounded-lg text-xs shadow flex items-center gap-1">
-          <i class="fa-solid fa-gift"></i> รับ 2,000 ฟรี
+          <i class="fa-solid fa-gift"></i> ฟรี 2k
         </button>
         <button id="btnOpenBank" class="bg-stone-800 hover:bg-stone-700 border border-amber-700 px-2 py-1 rounded-lg text-xs text-amber-300 font-semibold flex items-center gap-1">
           <i class="fa-solid fa-building-columns"></i> ธนาคาร
@@ -158,7 +153,7 @@
           <i class="fa-solid fa-screwdriver-wrench"></i> จัดการระบบ
         </button>
         <button id="btnLogoutMain" class="bg-stone-800 hover:bg-rose-900 border border-stone-700 text-stone-400 px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+          <i class="fa-solid fa-right-from-bracket"></i>
         </button>
       </div>
     </header>
@@ -166,9 +161,7 @@
     <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-3 overflow-hidden">
       <div class="lg:col-span-2 bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <h2 class="text-sm font-bold text-amber-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-door-open"></i> รายการห้องเล่น Saloon
-          </h2>
+          <h2 class="text-sm font-bold text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-door-open"></i> รายการห้องเล่น Saloon</h2>
           <div class="flex items-center gap-1.5">
             <input type="text" id="inputSearchRoomCode" maxlength="6" class="w-24 bg-stone-950 border border-stone-700 rounded px-2 py-1 text-center font-bold text-amber-400 text-xs focus:outline-none" placeholder="เลขห้อง 6 หลัก">
             <button id="btnJoinByCode" class="bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-200 px-2.5 py-1 rounded text-xs font-bold">เข้า</button>
@@ -179,23 +172,20 @@
       </div>
 
       <div class="bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
-        <h3 class="text-xs font-bold text-amber-400 border-b border-stone-800 pb-2 mb-2 flex items-center gap-1.5">
-          <i class="fa-solid fa-comments"></i> แชทกลางล็อบบี้ (Global Chat)
-        </h3>
+        <h3 class="text-xs font-bold text-amber-400 border-b border-stone-800 pb-2 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-comments"></i> แชทล็อบบี้</h3>
         <div id="boxGlobalChat" class="flex-1 overflow-y-auto space-y-1.5 pr-1 text-xs custom-scrollbar"></div>
         <div class="flex gap-1.5 mt-2 pt-2 border-t border-stone-800">
-          <input type="text" id="inputGlobalChat" maxlength="80" class="flex-1 bg-stone-950 border border-stone-700 rounded px-2 py-1 text-xs text-white focus:outline-none" placeholder="พิมพ์ข้อความคุยในล็อบบี้...">
+          <input type="text" id="inputGlobalChat" maxlength="80" class="flex-1 bg-stone-950 border border-stone-700 rounded px-2 py-1 text-xs text-white focus:outline-none" placeholder="พิมพ์ข้อความ...">
           <button id="btnSendGlobalChat" class="bg-amber-600 hover:bg-amber-500 text-stone-950 px-3 py-1 rounded text-xs font-bold">ส่ง</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modals สำหรับแต่งตัว, กติกา, สร้างห้อง, ธนาคาร ฯลฯ -->
   <div id="modalWardrobe" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
-        <h3 class="text-base font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-user-pen"></i> แต่งตัว & ตั้งชื่อเล่นคาวบอย</h3>
+        <h3 class="text-base font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-user-pen"></i> แต่งตัว & ตั้งชื่อเล่น</h3>
         <button id="btnCloseWardrobe" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="flex items-center justify-center py-1 mb-2">
@@ -203,36 +193,36 @@
       </div>
       <div class="space-y-2.5 text-xs overflow-y-auto pr-1 custom-scrollbar">
         <div>
-          <label class="block text-amber-300 font-bold mb-1"><i class="fa-solid fa-id-badge"></i> ชื่อเล่นที่แสดงในเกม (Display Name)</label>
+          <label class="block text-amber-300 font-bold mb-1">ชื่อที่ใช้แสดง (Display Name)</label>
           <input type="text" id="inputCustomNickname" maxlength="16" class="w-full bg-stone-800 border border-amber-600/70 rounded px-3 py-1.5 text-white font-bold focus:outline-none focus:border-amber-400">
         </div>
         <div>
-          <label class="block text-stone-300 mb-1">สไตล์หมวกคาวบอย (7 แบบ)</label>
+          <label class="block text-stone-300 mb-1">สไตล์หมวกคาวบอย</label>
           <select id="selHatStyle" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-white">
-            <option value="cattleman">Cattleman (ปีกโค้งคลาสสิก ดั้งเดิม)</option>
-            <option value="sombrero">Sombrero (ปีกกว้างลายถัก แม็กซิกัน)</option>
-            <option value="gambler">Gambler (ทรงแบนลายไพ่ นักเสี่ยงโชค)</option>
-            <option value="derby">Derby (โบว์เลอร์ขอบมน นายอำเภอ)</option>
-            <option value="outback">Outback (หมวกปีกกว้างทรงออสเตรเลีย)</option>
-            <option value="bowler">Bowler (ทรงกลมสุภาพบุรุษ)</option>
-            <option value="fedora">Fedora (เฟโดรานักสืบยุคคาวบอย)</option>
+            <option value="cattleman">Cattleman (ปีกโค้งดั้งเดิม)</option>
+            <option value="sombrero">Sombrero (ปีกกว้างแม็กซิกัน)</option>
+            <option value="gambler">Gambler (ทรงแบนลายไพ่)</option>
+            <option value="derby">Derby (โบว์เลอร์นายอำเภอ)</option>
+            <option value="outback">Outback (หมวกปีกกว้าง)</option>
+            <option value="bowler">Bowler (ทรงกลม)</option>
+            <option value="fedora">Fedora (เฟโดรานักสืบ)</option>
           </select>
         </div>
         <div>
-          <label class="block text-stone-300 mb-1">เฉดสีหมวก (12 สีพิเศษ)</label>
+          <label class="block text-stone-300 mb-1">สีหมวก</label>
           <div class="grid grid-cols-6 gap-2">
-            <button onclick="setWardrobeColor('#4a2e18')" title="หนังคลาสสิก" class="w-7 h-7 rounded-full bg-[#4a2e18] border border-amber-400 shadow"></button>
-            <button onclick="setWardrobeColor('#1c1917')" title="ดำสนิท" class="w-7 h-7 rounded-full bg-[#1c1917] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#881337')" title="เลือดหมู" class="w-7 h-7 rounded-full bg-[#881337] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#ca8a04')" title="ทองอำพัน" class="w-7 h-7 rounded-full bg-[#ca8a04] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#047857')" title="เขียวป่าลึก" class="w-7 h-7 rounded-full bg-[#047857] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#f5f5f4')" title="ขาวนวล" class="w-7 h-7 rounded-full bg-[#f5f5f4] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#1e3a8a')" title="กรมท่าคาวบอย" class="w-7 h-7 rounded-full bg-[#1e3a8a] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#581c87')" title="ม่วงไวโอเล็ต" class="w-7 h-7 rounded-full bg-[#581c87] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#713f12')" title="ช็อกโกแลต" class="w-7 h-7 rounded-full bg-[#713f12] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#ea580c')" title="ส้มสนิม" class="w-7 h-7 rounded-full bg-[#ea580c] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#475569')" title="เทากราไฟต์" class="w-7 h-7 rounded-full bg-[#475569] border border-stone-600 shadow"></button>
-            <button onclick="setWardrobeColor('#dc2626')" title="แดงคริมสัน" class="w-7 h-7 rounded-full bg-[#dc2626] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#4a2e18')" class="w-7 h-7 rounded-full bg-[#4a2e18] border border-amber-400 shadow"></button>
+            <button onclick="setWardrobeColor('#1c1917')" class="w-7 h-7 rounded-full bg-[#1c1917] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#881337')" class="w-7 h-7 rounded-full bg-[#881337] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#ca8a04')" class="w-7 h-7 rounded-full bg-[#ca8a04] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#047857')" class="w-7 h-7 rounded-full bg-[#047857] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#f5f5f4')" class="w-7 h-7 rounded-full bg-[#f5f5f4] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#1e3a8a')" class="w-7 h-7 rounded-full bg-[#1e3a8a] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#581c87')" class="w-7 h-7 rounded-full bg-[#581c87] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#713f12')" class="w-7 h-7 rounded-full bg-[#713f12] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#ea580c')" class="w-7 h-7 rounded-full bg-[#ea580c] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#475569')" class="w-7 h-7 rounded-full bg-[#475569] border border-stone-600 shadow"></button>
+            <button onclick="setWardrobeColor('#dc2626')" class="w-7 h-7 rounded-full bg-[#dc2626] border border-stone-600 shadow"></button>
           </div>
         </div>
         <div>
@@ -246,7 +236,7 @@
         </div>
       </div>
       <div class="flex justify-end gap-2 mt-3 pt-2 border-t border-stone-800">
-        <button id="btnSaveWardrobe" class="w-full bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold py-2 rounded text-xs transition">บันทึกชื่อและชุดแต่งกาย</button>
+        <button id="btnSaveWardrobe" class="w-full bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold py-2 rounded text-xs transition">บันทึกข้อมูล</button>
       </div>
     </div>
   </div>
@@ -254,29 +244,28 @@
   <div id="modalRules" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
     <div class="w-full max-w-lg bg-stone-900 border-2 border-amber-500 rounded-2xl p-5 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
-        <h3 class="text-base font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-scroll text-amber-500"></i> กติกาการเล่น FiwTeeTak Saloon</h3>
+        <h3 class="text-base font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-scroll text-amber-500"></i> กติกาการเล่น FiwTeeTak</h3>
         <button id="btnCloseRules" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="flex-1 overflow-y-auto space-y-3 pr-1 text-xs text-stone-300 leading-relaxed custom-scrollbar">
         <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
           <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> กติกาพื้นฐาน</h4>
-          <p>1. เมื่อเริ่มรอบใหม่ ผู้เล่นทุกคนบนโต๊ะจะถูกหัก <b>ค่าต๋ง (Ante 50)</b> เข้ากองกลาง (POT) หากกองกลางเป็น 0</p>
-          <p>2. ผู้เล่นจะได้รับไพ่ <b>4 ใบ</b></p>
-          <p>3. คุณสามารถเลือกลงเดิมพันได้ตามจำนวนเหรียญที่ต้องการ (ไม่เกินชิปตนเอง และไม่เกินยอด POT กองกลาง) <b>ขั้นต่ำ 10 เหรียญ</b></p>
-          <p>4. <b>มีเวลา 30 วินาที</b> ในการตัดสินใจ หากหมดเวลาจะถูกบังคับลงขั้นต่ำอัตโนมัติ</p>
+          <p>1. ทุกรอบใหม่หัก <b>ค่าต๋ง (Ante 50)</b> เข้ากองกลาง (POT) หากกองกลางเป็น 0</p>
+          <p>2. ผู้เล่นจะได้ไพ่ในมือ <b>4 ใบ</b></p>
+          <p>3. คุณสามารถเดิมพันได้สูงสุดเท่าที่ชิปคุณมี และห้ามเกินยอด POT โดยบังคับ <b>ขั้นต่ำ 10 เหรียญ</b></p>
+          <p>4. <b>มีเวลา 30 วินาที</b> หากหมดเวลาจะบังคับลงขั้นต่ำ (หรือเทหมดถ้าเงินไม่พอ 10)</p>
         </div>
         <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
-          <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-trophy"></i> เงื่อนไขการชนะ</h4>
-          <p>• เมื่อคุณเดิมพัน ระบบจะหงายไพ่กองกลาง 1 ใบ</p>
-          <p>• หากคุณมีไพ่ <b>"ดอกเดียวกัน (Suit)"</b> และ <b>"แต้มสูงกว่า"</b> ไพ่กองกลาง คุณจะ <b>ชนะ!</b></p>
-          <p>• <b>เงินรางวัลชนะ:</b> ได้กำไร 1:1 จาก POT (เช่น เดิมพัน 50 ได้กลับมา 100 โดยหักจาก POT ไป 50)</p>
-          <p>• <b>แพ้:</b> เสียยอดที่เดิมพันเข้าสู่ POT กองกลาง</p>
-          <p>• <b>ลำดับแต้มไพ่:</b> A (14) > K > Q > J > 10 ... > 2 (ต่ำสุด)</p>
+          <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-trophy"></i> เงื่อนไขการชนะเงิน</h4>
+          <p>• เมื่อเดิมพัน ระบบจะหงายไพ่กองกลาง 1 ใบ</p>
+          <p>• หากคุณมีไพ่ <b>"ดอกเดียวกัน (Suit)"</b> และ <b>"แต้มสูงกว่า"</b> คุณจะ <b>ชนะ!</b></p>
+          <p>• <b>เงินรางวัลชนะ:</b> ได้กำไร 1:1 จาก POT (เช่น เดิมพัน 50 ได้กลับมา 100 หักจาก POT ไป 50)</p>
+          <p>• <b>แพ้:</b> ยอดที่เดิมพันจะถูกนำไปสบทบเข้า POT</p>
         </div>
         <div class="bg-stone-950 p-3 rounded-xl border border-stone-800">
           <h4 class="font-bold text-amber-300 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-user-clock"></i> การเข้าเล่นกลางเกม (Spectator/Waiting)</h4>
-          <p>• หากห้องเต็ม (เช่น 6/6) ผู้เล่นคนที่ 7 จะเป็น <b>ผู้ชม</b> โต๊ะ</p>
-          <p>• หากที่นั่งว่างและกดนั่งกลางเกม จะติดสถานะ <b>"รอเล่น (ตัวจาง)"</b> จนกว่ากองกลางจะหมดเหลือ 0 จึงจะได้เข้าเล่นจริงในรอบถัดไป</p>
+          <p>• ห้องเต็ม 6 คน ผู้ที่เข้าทีหลังจะเป็น <b>ผู้ชม (Spectator)</b></p>
+          <p>• หากนั่งเก้าอี้ว่างระหว่างเกม จะเป็นสถานะ <b>"รอเล่น (ตัวจาง)"</b> จนกว่ากองกลางจะหมดเหลือ 0 จึงจะได้เข้าเล่น</p>
         </div>
       </div>
     </div>
@@ -378,9 +367,10 @@
     </div>
   </div>
 
-  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE - แก้ไข Layout ป้องกันไพ่ทับกัน) ================= -->
+  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE - แก้ไข Layout การทับซ้อน 100%) ================= -->
   <div id="screenGame" class="hidden relative w-full h-full max-w-[1100px] max-h-[660px] flex flex-col justify-between p-2">
     
+    <!-- Top HUD Bar -->
     <div class="flex items-center justify-between bg-stone-950/80 backdrop-blur border border-amber-900/80 rounded-xl px-3 py-1.5 text-xs shadow-lg z-40">
       <div class="flex items-center gap-2">
         <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2.5 py-1 rounded border border-stone-700 text-[11px] font-bold"><i class="fa-solid fa-arrow-left"></i> ออก</button>
@@ -396,7 +386,7 @@
       </div>
     </div>
 
-    <!-- โต๊ะสักหลาดและโครงสร้างแบบ Flex-Col ล้วน -->
+    <!-- โต๊ะไม้และสักหลาด (ใช้ Flex Layout แกนตั้งป้องกันการซ้อนทับกัน) -->
     <div class="relative flex-1 my-1 flex items-center justify-center overflow-hidden">
       <div class="table-wood-rim w-[82%] h-[78%] flex items-center justify-center relative">
         <div class="poker-saloon-table w-full h-full relative flex flex-col items-center justify-center">
@@ -406,23 +396,20 @@
             <div class="text-[9px] uppercase font-bold tracking-widest text-amber-900 mt-1">Saloon Poker Table</div>
           </div>
 
-          <!-- ใช้ Flex Box ตรงกลางโต๊ะเพื่อเรียง ไพ่/ชิป/ปุ่ม จากบนลงล่าง ป้องกันการทับกัน 100% -->
-          <div class="relative z-15 flex flex-col items-center justify-center space-y-3 pointer-events-none w-full">
+          <!-- โซนกลางโต๊ะ: เรียงจากบนลงล่าง สำรับไพ่ -> ชิป POT -> ไพ่กองกลาง -> ข้อความ/ปุ่ม -->
+          <div class="relative z-15 flex flex-col items-center justify-center space-y-4 w-full pointer-events-none mt-2">
             
-            <!-- สำรับไพ่สำหรับแอนิเมชันบิน -->
-            <div id="deckCenterPile" class="relative z-15 mb-2">
+            <div id="deckCenterPile" class="relative z-15">
               <div class="w-10 h-14 bg-gradient-to-br from-blue-800 to-indigo-950 border border-blue-400 rounded shadow-2xl flex items-center justify-center">
                 <span class="text-blue-200 opacity-60 font-bold">♠</span>
               </div>
             </div>
 
-            <!-- ชิป POT กลางโต๊ะ -->
             <div class="flex items-center gap-1.5 bg-black/70 border border-amber-500/60 px-5 py-1.5 rounded-full shadow-lg">
               <i class="fa-solid fa-circle-dot text-amber-400 text-xs animate-spin"></i>
               <span id="lblCenterPotText" class="text-sm font-black text-amber-300 font-rye">0</span>
             </div>
 
-            <!-- ไพ่กองกลาง & ไพ่ชนะประลอง (Showcase) -->
             <div id="boxShowcase" class="flex items-center justify-center gap-5 min-h-[90px] w-full">
               <div class="flex flex-col items-center">
                 <span class="text-[10px] text-amber-100 font-bold mb-1 drop-shadow">ไพ่กองกลาง</span>
@@ -430,26 +417,26 @@
               </div>
               <div id="showcaseVS" class="hidden text-amber-300 font-black text-base drop-shadow-lg">VS</div>
               <div id="boxWinningReveal" class="hidden flex flex-col items-center">
-                <span class="text-[10px] text-yellow-300 mb-1 font-bold drop-shadow">ไพ่ใบใหญ่สุดที่ชนะ</span>
+                <span class="text-[10px] text-yellow-300 mb-1 font-bold drop-shadow">ไพ่ชนะ</span>
                 <div id="cardWinningReveal" class="w-[52px] h-[72px] bg-white text-stone-900 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl gold-spotlight">-</div>
               </div>
             </div>
 
-            <div class="flex flex-col items-center min-h-[40px] w-full pointer-events-auto mt-2">
+            <div class="flex flex-col items-center min-h-[40px] w-full pointer-events-auto">
               <div id="txtGameStatus" class="text-xs font-bold text-amber-100 text-center drop-shadow px-4 py-1 bg-black/60 rounded-full mb-1"></div>
-              <button id="btnStartGameAction" class="hidden pointer-events-auto bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-8 py-2.5 rounded-full text-xs animate-bounce shadow-2xl border-2 border-green-300 transition uppercase tracking-wide">
+              <button id="btnStartGameAction" class="hidden bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-8 py-2.5 rounded-full text-xs animate-bounce shadow-2xl border-2 border-green-300 transition uppercase tracking-wide">
                 <i class="fa-solid fa-play"></i> กดเริ่มเกมส์
               </button>
             </div>
-
           </div>
-
         </div>
       </div>
 
+      <!-- เลเยอร์ที่นั่งผู้เล่นและแอนิเมชัน -->
       <div id="seatsContainer" class="absolute inset-0 pointer-events-none z-20"></div>
       <div id="dealAnimationLayer" class="absolute inset-0 pointer-events-none z-35"></div>
 
+      <!-- แชทห้อง -->
       <div class="absolute bottom-2 left-3 z-40 pointer-events-auto">
         <button id="btnToggleRoomChat" class="bg-stone-950/80 hover:bg-stone-900 border border-amber-600/60 text-amber-400 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition">
           <i class="fa-solid fa-comment-dots text-base"></i>
@@ -472,11 +459,13 @@
     <!-- Controls Bottom Bar -->
     <div id="controlsBar" class="bg-stone-950/95 border border-amber-900/80 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xl z-40">
       
+      <!-- ไพ่ในมือ -->
       <div class="flex items-center gap-2">
         <span class="text-xs text-amber-300 font-bold mr-0.5">ไพ่ของคุณ:</span>
         <div id="myHandCards" class="flex gap-2"></div>
       </div>
 
+      <!-- แผงเดิมพัน -->
       <div class="flex flex-col sm:flex-row items-center gap-2.5">
         <div class="flex flex-col gap-1 items-end">
           <div class="flex items-center gap-2">
@@ -505,66 +494,6 @@
   </div>
 
   <script>
-    let audioCtx = null;
-    function initAudio() {
-      if (!audioCtx) {
-        try {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (AC) audioCtx = new AC();
-        } catch (e) { }
-      }
-    }
-    
-    function playSound(type) {
-      try {
-        initAudio();
-        if (!audioCtx) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        const now = audioCtx.currentTime;
-
-        if (type === 'deal') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(350, now);
-          osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-          osc.start(now);
-          osc.stop(now + 0.1);
-        } else if (type === 'chip') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(1200, now);
-          osc.frequency.setValueAtTime(1800, now + 0.03);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-          osc.start(now);
-          osc.stop(now + 0.08);
-        } else if (type === 'win') {
-          [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            o.connect(g);
-            g.connect(audioCtx.destination);
-            o.frequency.setValueAtTime(freq, now + i * 0.09);
-            g.gain.setValueAtTime(0.25, now + i * 0.09);
-            g.gain.exponentialRampToValueAtTime(0.01, now + (i + 1) * 0.12);
-            o.start(now + i * 0.09);
-            o.stop(now + (i + 1) * 0.12);
-          });
-        } else if (type === 'bell') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(880, now);
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-          osc.start(now);
-          osc.stop(now + 0.35);
-        }
-      } catch (e) {}
-    }
-
     const socket = io();
     let currentUser = null;
     let isRegisterMode = false;
@@ -585,10 +514,11 @@
         const raw = localStorage.getItem('fiwteetak_users_db_backup');
         if (raw) {
           const backupData = JSON.parse(raw);
-          socket.emit('db:sync_restore', { backupData });
+          if(backupData[currentUser?.username]) socket.emit('db:sync_restore', { backupData: backupData[currentUser.username] });
         }
       } catch (e) {}
     }
+
     socket.on('connect', () => { tryRestoreLocalDb(); });
 
     const screenAuth = document.getElementById('screenAuth');
@@ -608,6 +538,7 @@
     document.getElementById('btnCloseRules').onclick = () => modalRules.classList.add('hidden');
 
     function resetCommunityShowcase() {
+      document.getElementById('boxShowcase').classList.remove('hidden');
       const commBox = document.getElementById('cardCommunity');
       commBox.className = "w-[52px] h-[72px] bg-stone-900 border-2 border-stone-700 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl text-stone-400";
       commBox.innerHTML = "?";
@@ -627,53 +558,35 @@
       const bandanaStr = hat + hatCol;
       const bColor = bandanaColors[bandanaStr.length % bandanaColors.length];
 
-      let hatCrown = '';
-      let hatBrim = '';
+      let hatCrown = ''; let hatBrim = '';
 
       if (hat === 'sombrero') {
-        hatBrim = `<ellipse cx="40" cy="40" rx="38" ry="32" fill="${hatCol}" stroke="#ca8a04" stroke-width="2.5"/>
-                   <ellipse cx="40" cy="40" rx="31" ry="26" fill="none" stroke="#ca8a04" stroke-dasharray="3,3" stroke-width="1.5"/>`;
-        hatCrown = `<ellipse cx="40" cy="40" rx="15" ry="12" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))"/>
-                    <ellipse cx="40" cy="38" rx="8" ry="6" fill="#ca8a04"/>`;
+        hatBrim = `<ellipse cx="40" cy="40" rx="38" ry="32" fill="${hatCol}" stroke="#ca8a04" stroke-width="2.5"/><ellipse cx="40" cy="40" rx="31" ry="26" fill="none" stroke="#ca8a04" stroke-dasharray="3,3" stroke-width="1.5"/>`;
+        hatCrown = `<ellipse cx="40" cy="40" rx="15" ry="12" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))"/><ellipse cx="40" cy="38" rx="8" ry="6" fill="#ca8a04"/>`;
       } else if (hat === 'gambler') {
-        hatBrim = `<ellipse cx="40" cy="40" rx="34" ry="28" fill="${hatCol}" stroke="#1c1917" stroke-width="1.5"/>
-                   <rect x="18" y="38" width="44" height="4" fill="#991b1b"/>`;
-        hatCrown = `<ellipse cx="40" cy="40" rx="17" ry="14" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))"/>
-                    <circle cx="40" cy="40" r="3" fill="#ca8a04"/>`;
+        hatBrim = `<ellipse cx="40" cy="40" rx="34" ry="28" fill="${hatCol}" stroke="#1c1917" stroke-width="1.5"/><rect x="18" y="38" width="44" height="4" fill="#991b1b"/>`;
+        hatCrown = `<ellipse cx="40" cy="40" rx="17" ry="14" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))"/><circle cx="40" cy="40" r="3" fill="#ca8a04"/>`;
       } else if (hat === 'derby') {
         hatBrim = `<ellipse cx="40" cy="40" rx="32" ry="27" fill="${hatCol}"/>`;
-        hatCrown = `<ellipse cx="40" cy="39" rx="18" ry="15" fill="${hatCol}" filter="drop-shadow(0 3px 6px rgba(0,0,0,0.7))"/>
-                    <ellipse cx="40" cy="39" rx="12" ry="9" fill="#1c1917"/>`;
+        hatCrown = `<ellipse cx="40" cy="39" rx="18" ry="15" fill="${hatCol}" filter="drop-shadow(0 3px 6px rgba(0,0,0,0.7))"/><ellipse cx="40" cy="39" rx="12" ry="9" fill="#1c1917"/>`;
       } else if (hat === 'outback') {
-        hatBrim = `<ellipse cx="40" cy="40" rx="37" ry="29" fill="${hatCol}" stroke="#451a03" stroke-width="2"/>
-                   <path d="M12 40 Q40 33 68 40" stroke="#ca8a04" stroke-width="2" fill="none"/>`;
-        hatCrown = `<ellipse cx="40" cy="40" rx="16" ry="13" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/>
-                    <line x1="28" y1="40" x2="52" y2="40" stroke="#ca8a04" stroke-width="2"/>`;
+        hatBrim = `<ellipse cx="40" cy="40" rx="37" ry="29" fill="${hatCol}" stroke="#451a03" stroke-width="2"/><path d="M12 40 Q40 33 68 40" stroke="#ca8a04" stroke-width="2" fill="none"/>`;
+        hatCrown = `<ellipse cx="40" cy="40" rx="16" ry="13" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/><line x1="28" y1="40" x2="52" y2="40" stroke="#ca8a04" stroke-width="2"/>`;
       } else if (hat === 'bowler') {
         hatBrim = `<circle cx="40" cy="40" r="30" fill="${hatCol}" stroke="#0f172a" stroke-width="2"/>`;
-        hatCrown = `<circle cx="40" cy="40" r="18" fill="${hatCol}" filter="drop-shadow(0 4px 5px rgba(0,0,0,0.8))"/>
-                    <circle cx="40" cy="40" r="14" fill="#1e293b"/>`;
+        hatCrown = `<circle cx="40" cy="40" r="18" fill="${hatCol}" filter="drop-shadow(0 4px 5px rgba(0,0,0,0.8))"/><circle cx="40" cy="40" r="14" fill="#1e293b"/>`;
       } else if (hat === 'fedora') {
         hatBrim = `<ellipse cx="40" cy="40" rx="33" ry="26" fill="${hatCol}" stroke="#1e293b" stroke-width="1.5"/>`;
-        hatCrown = `<ellipse cx="40" cy="39" rx="16" ry="12" fill="${hatCol}" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.7))"/>
-                    <path d="M40 32 L40 46" stroke="#0f172a" stroke-width="2"/>
-                    <line x1="24" y1="39" x2="56" y2="39" stroke="#991b1b" stroke-width="2.5"/>`;
+        hatCrown = `<ellipse cx="40" cy="39" rx="16" ry="12" fill="${hatCol}" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.7))"/><path d="M40 32 L40 46" stroke="#0f172a" stroke-width="2"/><line x1="24" y1="39" x2="56" y2="39" stroke="#991b1b" stroke-width="2.5"/>`;
       } else { 
-        hatBrim = `<ellipse cx="40" cy="40" rx="35" ry="28" fill="${hatCol}" stroke="#27150c" stroke-width="1.5"/>
-                   <path d="M10 40 Q40 31 70 40" stroke="#170c06" stroke-width="2.5" fill="none"/>`;
-        hatCrown = `<ellipse cx="40" cy="40" rx="15" ry="15" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/>
-                    <path d="M40 27 L40 53" stroke="#170c06" stroke-width="2.5" stroke-linecap="round"/>
-                    <line x1="33" y1="40" x2="47" y2="40" stroke="#ca8a04" stroke-width="2"/>`;
+        hatBrim = `<ellipse cx="40" cy="40" rx="35" ry="28" fill="${hatCol}" stroke="#27150c" stroke-width="1.5"/><path d="M10 40 Q40 31 70 40" stroke="#170c06" stroke-width="2.5" fill="none"/>`;
+        hatCrown = `<ellipse cx="40" cy="40" rx="15" ry="15" fill="${hatCol}" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.7))"/><path d="M40 27 L40 53" stroke="#170c06" stroke-width="2.5" stroke-linecap="round"/><line x1="33" y1="40" x2="47" y2="40" stroke="#ca8a04" stroke-width="2"/>`;
       }
 
       let badgeElement = '';
-      if (badge === 'star') {
-        badgeElement = `<polygon points="40,24 42,29 47,29 43,32 45,37 40,34 35,37 37,32 33,29 38,29" fill="#facc15"/>`;
-      } else if (badge === 'feather') {
-        badgeElement = `<path d="M50 28 Q58 20 62 14 Q56 22 48 30 Z" fill="#ef4444"/>`;
-      } else if (badge === 'cards') {
-        badgeElement = `<rect x="46" y="22" width="6" height="9" rx="1" fill="#fff" transform="rotate(15 46 22)"/><text x="47" y="29" font-size="6" fill="#000" font-weight="bold">♠</text>`;
-      }
+      if (badge === 'star') badgeElement = `<polygon points="40,24 42,29 47,29 43,32 45,37 40,34 35,37 37,32 33,29 38,29" fill="#facc15"/>`;
+      else if (badge === 'feather') badgeElement = `<path d="M50 28 Q58 20 62 14 Q56 22 48 30 Z" fill="#ef4444"/>`;
+      else if (badge === 'cards') badgeElement = `<rect x="46" y="22" width="6" height="9" rx="1" fill="#fff" transform="rotate(15 46 22)"/><text x="47" y="29" font-size="6" fill="#000" font-weight="bold">♠</text>`;
 
       const waitingStyle = isWaiting ? 'opacity: 0.38; filter: grayscale(90%);' : '';
 
@@ -730,16 +643,16 @@
       err.innerText = 'กำลังเชื่อมต่อ...';
       if (!u || !p) return err.innerText = 'กรุณากรอกข้อมูลให้ครบ';
 
-      let responded = false;
       const evt = isRegisterMode ? 'auth:register' : 'auth:login';
       socket.emit(evt, { username: u, password: p }, (res) => {
-        responded = true;
         if (!res.success) {
           err.innerText = res.msg || 'เกิดข้อผิดพลาด';
         } else {
           err.innerText = '';
           currentUser = res.user;
-          saveLocalDbBackup(res.allDb);
+          // เซฟฐานข้อมูลลง Local Storage เพื่อกู้คืนกรณี Render รีเซ็ตไฟล์
+          saveLocalDbBackup({ [u]: res.user });
+          
           screenAuth.classList.add('hidden');
 
           if (res.reconnectData) {
@@ -752,7 +665,6 @@
           }
         }
       });
-      setTimeout(() => { if (!responded) err.innerText = 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณารอสักครู่...'; }, 3000);
     };
 
     document.getElementById('btnReconnectAccept').onclick = () => {
@@ -769,6 +681,13 @@
       });
     };
 
+    document.getElementById('btnLogoutMain').onclick = () => {
+      if (confirm('ออกจากระบบ?')) {
+        socket.emit('auth:logout');
+        window.location.reload(); 
+      }
+    };
+
     function updateLobbyUI() {
       if (!currentUser) return;
       const displayName = currentUser.displayName || currentUser.username;
@@ -781,13 +700,7 @@
 
     socket.on('auth:force_logout', ({ msg }) => {
       alert(msg || 'บัญชีของคุณถูกเข้าสู่ระบบจากเครื่องอื่น!');
-      currentUser = null;
-      screenGame.classList.add('hidden'); screenLobby.classList.add('hidden');
-      modalCreateRoom.classList.add('hidden'); modalBank.classList.add('hidden');
-      modalAdmin.classList.add('hidden'); modalWardrobe.classList.add('hidden');
-      modalHistory.classList.add('hidden'); modalRules.classList.add('hidden'); modalReconnect.classList.add('hidden');
-      document.getElementById('authPassword').value = '';
-      screenAuth.classList.remove('hidden');
+      window.location.reload();
     });
 
     document.getElementById('btnSendGlobalChat').onclick = sendGlobalMessage;
@@ -864,7 +777,7 @@
       socket.emit('user:update_avatar', { avatar: updatedAvatar, displayName: newNick }, (res) => {
         if (res.success) {
           currentUser = res.user;
-          saveLocalDbBackup(res.allDb);
+          saveLocalDbBackup({ [currentUser.username]: res.user });
           updateLobbyUI();
           modalWardrobe.classList.add('hidden');
           alert('บันทึกชื่อเล่นและชุดแต่งกายเรียบร้อยแล้ว!');
@@ -895,13 +808,19 @@
     window.adminAddChips = (targetUser) => {
       const amt = prompt(`เพิ่มเหรียญให้ ${targetUser}:`, '5000');
       if (amt) socket.emit('admin:mod_user', { targetUser, addChips: parseInt(amt) }, (res) => {
-        if (res.success) saveLocalDbBackup(res.allDb);
+        if (res.success && targetUser === currentUser.username) {
+           currentUser = res.user;
+           saveLocalDbBackup({ [currentUser.username]: currentUser });
+        }
         loadAdminUsersList();
       });
     };
     window.adminClearDebt = (targetUser) => {
       if (confirm(`ล้างหนี้ ${targetUser}?`)) socket.emit('admin:mod_user', { targetUser, clearDebt: true }, (res) => {
-        if (res.success) saveLocalDbBackup(res.allDb);
+        if (res.success && targetUser === currentUser.username) {
+           currentUser = res.user;
+           saveLocalDbBackup({ [currentUser.username]: currentUser });
+        }
         loadAdminUsersList();
       });
     };
@@ -910,7 +829,7 @@
       socket.emit('admin:skip_day', {}, (res) => {
         if (res.success) {
           currentUser = res.user;
-          saveLocalDbBackup(res.allDb);
+          saveLocalDbBackup({ [currentUser.username]: currentUser });
           updateLobbyUI();
           alert('ข้าม 1 วันเรียบร้อย');
         }
@@ -921,7 +840,7 @@
       socket.emit('user:claim_daily', {}, (res) => {
         if (res.success) {
           currentUser.chips = res.chips;
-          saveLocalDbBackup(res.allDb);
+          saveLocalDbBackup({ [currentUser.username]: currentUser });
           updateLobbyUI();
           alert('🎉 ได้รับ 2,000 เหรียญ!');
         } else alert(res.msg);
@@ -940,7 +859,7 @@
       socket.emit('bank:action', { type, amount: amt }, (res) => {
         if (res.success) {
           currentUser = res.user;
-          saveLocalDbBackup(res.allDb);
+          saveLocalDbBackup({ [currentUser.username]: currentUser });
           updateLobbyUI();
           document.getElementById('lblBankSavings').innerText = (currentUser.bankSavings || 0).toLocaleString() + ' 🪙';
           document.getElementById('lblBankDebt').innerText = (currentUser.bankDebt || 0).toLocaleString() + ' 🪙';
@@ -1031,6 +950,7 @@
     const sliderBet = document.getElementById('sliderBet');
     const inputBet = document.getElementById('inputBetNumber');
     
+    // ตั้งค่าลิมิตการเดิมพัน ขั้นต่ำ 10 เหรียญ (ถ้ามีไม่ถึงก็ลงได้เท่าที่มี) มากสุดห้ามเกิน POT หรือเกินชิปตนเอง
     function updateBetLimits(me, pot) {
       if (!me) return;
       const absoluteMax = Math.min(me.chips, pot); 
@@ -1048,7 +968,7 @@
       }
     }
 
-    sliderBet.oninput = () => { inputBet.value = sliderBet.value; playSound('chip'); };
+    sliderBet.oninput = () => { inputBet.value = sliderBet.value; };
     inputBet.oninput = () => {
       let val = parseInt(inputBet.value) || 0;
       if (val < parseInt(sliderBet.min)) val = parseInt(sliderBet.min);
@@ -1071,7 +991,6 @@
       target = Math.max(parseInt(sliderBet.min), Math.min(target, maxPossible));
       sliderBet.value = target;
       inputBet.value = target;
-      playSound('chip');
     };
 
     socket.on('game:state_sync', (state) => {
@@ -1085,10 +1004,25 @@
       document.getElementById('lblSeatAction').innerText = isSpectating ? 'นั่งลงเล่น' : 'ลุกจากโต๊ะ';
 
       const me = state.players.find(p => p.username === currentUser.username);
-      if (me) updateBetLimits(me, state.pot);
+      if (me) {
+        // อัปเดตข้อมูลเหรียญใน Local Storage ทันที ป้องกันการสูญหายระหว่างเล่น
+        currentUser.chips = me.chips;
+        saveLocalDbBackup({ [currentUser.username]: currentUser });
+        updateBetLimits(me, state.pot);
+      }
 
+      // หงายไพ่ 4 ใบของตนเองแบบค่อยๆ ปรากฏทีละใบถ้ามาจากการแจก
       updateHeroHandVisuals(me, state);
+
       checkPlayerTurnLock(state);
+      
+      if (!state.isGameRunning) {
+        document.getElementById('boxShowcase').classList.add('hidden');
+      } else {
+        document.getElementById('boxShowcase').classList.remove('hidden');
+      }
+      
+      // อัปเดตตัวละครและไพ่ข้างที่นั่งแบบไม่กระพริบ
       renderTopDownSeats(state.players, state.activeTurnIndex, state.isGameRunning, state.cardsDealt);
     });
 
@@ -1116,9 +1050,11 @@
       }
     }
 
-    // แอนิเมชันแจกไพ่ค่อยๆ แจกทีละใบ
+    // แอนิเมชันแจกไพ่ทีละใบ 4 ใบให้ทุกคน
     socket.on('game:dealing_cards', () => {
       resetCommunityShowcase();
+      document.getElementById('boxShowcase').classList.remove('hidden');
+      
       const layer = document.getElementById('dealAnimationLayer');
       layer.innerHTML = '';
       
@@ -1150,21 +1086,19 @@
           const cosA = Math.cos(angle);
           const sinA = Math.sin(angle);
           
-          // คำนวณดันพิกัดไพ่เข้าไปในโต๊ะให้ลึกขึ้นเพื่อหนีป้ายชื่อ (-8.5 multiplier)
+          // ดันพิกัดไพ่ให้พ้นรัศมีป้ายชื่อ (ปรับเวกเตอร์ให้ลึกเข้าในโต๊ะอีกนิด)
           let targetLeft = charLeft - cosA * 8.5 + (-sinA) * 5.5;
           let targetTop = charTop - sinA * 8.5 + cosA * 5.5;
           
-          // ขยับไพ่ซ้อนกันทีละนิด
           const cardOffset = round * 1.5;
           targetLeft += (-sinA) * cardOffset;
           targetTop += cosA * cardOffset;
 
           setTimeout(() => {
-            playSound('deal');
             const card = document.createElement('div');
             card.className = 'absolute w-4 h-6 bg-gradient-to-br from-blue-700 to-indigo-950 border border-blue-400 rounded-sm shadow-xl z-50 card-fly';
             card.style.left = '50%';
-            card.style.top = '25%';
+            card.style.top = '22%';
             layer.appendChild(card);
             
             setTimeout(() => {
@@ -1177,16 +1111,15 @@
               card.remove();
               dealtCardsCount[p.username]++;
               updateSeatCardsVisual(p);
-            }, 800); // ระยะเวลาบิน
+            }, 800); 
 
           }, delayMs);
           
-          delayMs += 200; // หน่วงให้แจกช้าลง
+          delayMs += 200; // หน่วงเวลาให้เห็นชัดเจน (4 รอบ)
         });
       }
     });
-    
-    // อัปเดตไพ่คว่ำข้างตัวและไพ่ในมือตามที่รับแจกมาแล้ว
+
     function updateSeatCardsVisual(p) {
       const container = document.getElementById(`seat_cards_${p.username}`);
       if (container) {
@@ -1255,11 +1188,11 @@
         const perpX = -sinA;
         const perpY = cosA;
 
-        // ดันไพ่เข้าไปในโต๊ะเพื่อไม่ให้ทับป้ายชื่อ
+        // วางไพ่คว่ำข้างลำตัว (Container สำหรับใส่ไพ่เรียงกัน) ไม่ให้บังป้ายชื่อ
         const cardLeft = charLeft - cosA * 8.5 + perpX * 5.5;
         const cardTop = charTop - sinA * 8.5 + perpY * 5.5;
 
-        // ดันชิปเข้าไปในโต๊ะอีกฝั่ง
+        // วางชิปข้างลำตัวอีกฝั่ง
         const chipLeft = charLeft - cosA * 8.5 - perpX * 5.5;
         const chipTop = charTop - sinA * 8.5 - perpY * 5.5;
 
@@ -1318,7 +1251,8 @@
       const targetName = activeDisplayName || activeUsername;
       document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `รอ ${targetName} เดิมพัน...`;
       resetCommunityShowcase();
-      if (isMe) playSound('bell');
+      document.getElementById('boxShowcase').classList.remove('hidden'); // โชว์กล่องไพ่กองกลางรอการเปิด
+      
       setBettingControlsEnabled(isMe);
 
       const timerBox = document.getElementById('boxTimer');
@@ -1340,7 +1274,6 @@
 
     document.getElementById('btnBetAction').onclick = () => {
       const amt = parseInt(document.getElementById('inputBetNumber').value) || 10;
-      playSound('chip');
       socket.emit('game:bet', { amount: amt });
       clearInterval(turnTimerInterval);
       document.getElementById('boxTimer').classList.add('hidden');
@@ -1350,7 +1283,6 @@
     socket.on('game:showdown_result', ({ player, communityCard, winningCard, isWin, betAmount, potNow }) => {
       document.getElementById('hudPot').innerText = potNow.toLocaleString();
       document.getElementById('lblCenterPotText').innerText = potNow.toLocaleString();
-      if (isWin) playSound('win'); else playSound('chip');
 
       const commBox = document.getElementById('cardCommunity');
       commBox.className = `w-[52px] h-[72px] bg-white rounded-lg flex flex-col items-center justify-center font-bold text-base shadow-2xl ${communityCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
@@ -1359,6 +1291,7 @@
       const winBox = document.getElementById('boxWinningReveal');
       const winCard = document.getElementById('cardWinningReveal');
       const vsText = document.getElementById('showcaseVS');
+      
       if (isWin && winningCard) {
         vsText.classList.remove('hidden');
         winBox.classList.remove('hidden');
@@ -1373,7 +1306,6 @@
     });
 
     socket.on('game:pot_split_jackpot', ({ perPlayer }) => {
-      playSound('win');
       alert(`💥 JACKPOT 80%! กองกลางแตก ทุกคนได้รับคนละ ${perPlayer.toLocaleString()} เหรียญ`);
     });
 

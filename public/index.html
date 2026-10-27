@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>FiwTeeTak - Saloon Online</title>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -19,127 +19,164 @@
     .font-rye { font-family: 'Rye', cursive; }
     .table-felt {
       background: radial-gradient(ellipse at center, #931a1a 0%, #4a0808 68%, #1a0202 100%);
-      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9), 0 10px 40px rgba(0, 0, 0, 0.8);
-      border: 14px solid #3d2314;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9), 0 8px 30px rgba(0, 0, 0, 0.8);
+      border: 10px solid #3d2314;
     }
     .gold-glow {
-      box-shadow: 0 0 20px #eab308, inset 0 0 12px #ca8a04;
+      box-shadow: 0 0 16px #eab308, inset 0 0 10px #ca8a04;
     }
     .gold-spotlight {
       animation: pulseGlow 1.2s infinite alternate;
       border: 3px solid #facc15 !important;
-      transform: scale(1.15) translateY(-10px);
+      transform: scale(1.12) translateY(-6px);
       z-index: 40;
     }
     @keyframes pulseGlow {
       0% { box-shadow: 0 0 10px #facc15, 0 0 20px #eab308; }
       100% { box-shadow: 0 0 25px #fef08a, 0 0 45px #eab308; }
     }
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #78350f; border-radius: 4px; }
+
+    /* ป้ายแจ้งเตือนให้หมุนจอแนวนอนในมือถือ */
+    @media (orientation: portrait) and (max-width: 820px) {
+      #rotateNotice { display: flex !important; }
+    }
   </style>
 </head>
 <body class="flex items-center justify-center h-screen w-screen overflow-hidden text-amber-50">
 
+  <!-- แบนเนอร์บังคับหมุนจอแนวนอนเมื่อเปิดในมือถือ -->
+  <div id="rotateNotice" class="hidden fixed inset-0 z-[100] bg-stone-950/95 flex-col items-center justify-center p-6 text-center">
+    <div class="text-amber-500 text-6xl mb-4 animate-bounce">
+      <i class="fa-solid fa-mobile-screen-button rotate-90"></i>
+    </div>
+    <h3 class="text-xl font-bold text-amber-400 font-rye mb-1">กรุณาหมุนจอเป็นแนวนอน</h3>
+    <p class="text-sm text-stone-400 max-w-xs">เกมคาวบอย FiwTeeTak ถูกออกแบบมาให้เล่นในมุมมองแนวนอนเพื่อประสบการณ์ที่สมบูรณ์แบบ</p>
+  </div>
+
   <!-- ================= 1. หน้า LOGIN & REGISTER ================= -->
   <div id="screenAuth" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
-    <div class="w-full max-w-md bg-stone-900 border-2 border-amber-600 rounded-2xl p-6 shadow-2xl">
-      <div class="text-center mb-6">
-        <h1 class="text-4xl text-amber-400 font-rye tracking-wider drop-shadow">FiwTeeTak</h1>
-        <p class="text-stone-400 text-sm mt-1">คาวบอยการ์ดเกมออนไลน์ สไตล์ Saloon</p>
+    <div class="w-full max-w-sm bg-stone-900 border-2 border-amber-600 rounded-2xl p-5 shadow-2xl">
+      <div class="text-center mb-4">
+        <h1 class="text-3xl text-amber-400 font-rye tracking-wider drop-shadow">FiwTeeTak</h1>
+        <p class="text-stone-400 text-xs mt-0.5">คาวบอยการ์ดเกมออนไลน์ สไตล์ Saloon</p>
       </div>
 
-      <div class="flex border-b border-stone-700 mb-6">
-        <button id="tabBtnLogin" class="flex-1 py-2 text-center text-amber-400 font-bold border-b-2 border-amber-500">เข้าสู่ระบบ</button>
-        <button id="tabBtnRegister" class="flex-1 py-2 text-center text-stone-400 font-bold hover:text-stone-200">สมัครสมาชิก</button>
+      <div class="flex border-b border-stone-700 mb-4">
+        <button id="tabBtnLogin" class="flex-1 py-1.5 text-center text-amber-400 font-bold border-b-2 border-amber-500 text-sm">เข้าสู่ระบบ</button>
+        <button id="tabBtnRegister" class="flex-1 py-1.5 text-center text-stone-400 font-bold hover:text-stone-200 text-sm">สมัครสมาชิก</button>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-3">
         <div>
-          <label class="block text-xs text-amber-200 mb-1">ชื่อผู้ใช้ (Username)</label>
-          <input type="text" id="authUsername" class="w-full bg-stone-800 border border-stone-600 rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500" placeholder="กรอกชื่อผู้ใช้">
+          <label class="block text-[11px] text-amber-200 mb-1">ชื่อผู้ใช้ (Username)</label>
+          <input type="text" id="authUsername" class="w-full bg-stone-800 border border-stone-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="กรอกชื่อผู้ใช้">
         </div>
         <div>
-          <label class="block text-xs text-amber-200 mb-1">รหัสผ่าน (Password)</label>
-          <input type="password" id="authPassword" class="w-full bg-stone-800 border border-stone-600 rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500" placeholder="กรอกรหัสผ่าน">
+          <label class="block text-[11px] text-amber-200 mb-1">รหัสผ่าน (Password)</label>
+          <div class="relative">
+            <input type="password" id="authPassword" class="w-full bg-stone-800 border border-stone-600 rounded px-3 py-1.5 pr-9 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="กรอกรหัสผ่าน">
+            <button type="button" id="btnTogglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-amber-400">
+              <i class="fa-solid fa-eye text-xs" id="iconTogglePassword"></i>
+            </button>
+          </div>
         </div>
 
-        <button id="btnAuthSubmit" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-2.5 rounded shadow-lg transition">
+        <button id="btnAuthSubmit" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-2 rounded shadow-lg text-sm transition">
           เข้าสู่ระบบ
         </button>
-
-        <p id="txtAuthError" class="text-rose-400 text-xs text-center min-h-[16px]"></p>
+        <p id="txtAuthError" class="text-rose-400 text-[11px] text-center min-h-[14px]"></p>
       </div>
     </div>
   </div>
 
   <!-- ================= 2. หน้ารวมห้อง (SALOON LOBBY) ================= -->
-  <div id="screenLobby" class="hidden fixed inset-0 z-40 flex flex-col bg-stone-950 p-4 max-w-6xl mx-auto">
-    <!-- Header -->
-    <header class="flex flex-wrap items-center justify-between bg-stone-900 border border-amber-800/80 rounded-xl p-3 px-5 mb-4 shadow-lg gap-3">
-      <div class="flex items-center gap-3">
-        <span class="text-3xl text-amber-500 font-rye">FiwTeeTak</span>
-        <div class="text-xs bg-stone-800 border border-stone-700 px-3 py-1 rounded-full text-stone-300">
+  <div id="screenLobby" class="hidden fixed inset-0 z-40 flex flex-col bg-stone-950 p-2 sm:p-4 max-w-6xl mx-auto">
+    <!-- Header แบบ Responsive ไม่ล้นจอ -->
+    <header class="bg-stone-900 border border-amber-800/80 rounded-xl p-2.5 px-3 sm:px-5 mb-3 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center justify-between w-full sm:w-auto gap-3">
+        <span class="text-2xl sm:text-3xl text-amber-500 font-rye">FiwTeeTak</span>
+        <div class="text-[11px] bg-stone-800 border border-stone-700 px-2.5 py-0.5 rounded-full text-stone-300">
           ผู้เล่น: <b id="lblPlayerUsername" class="text-amber-400">-</b>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2 bg-stone-800 px-3 py-1.5 rounded-lg border border-amber-600/40">
-          <i class="fa-solid fa-coins text-amber-400 text-lg"></i>
-          <span id="lblPlayerChips" class="font-bold text-amber-300 text-lg">0</span>
-          <span class="text-xs text-stone-400">เหรียญ</span>
+      <div class="flex flex-wrap items-center justify-center sm:justify-end gap-1.5 sm:gap-2 w-full sm:w-auto">
+        <div class="flex items-center gap-1.5 bg-stone-800 px-2.5 py-1 rounded-lg border border-amber-600/40 text-xs">
+          <i class="fa-solid fa-coins text-amber-400"></i>
+          <span id="lblPlayerChips" class="font-bold text-amber-300">0</span>
         </div>
-        <button id="btnDailyBonus" class="bg-gradient-to-r from-yellow-500 to-amber-600 hover:scale-105 text-stone-950 font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1.5 transition">
+        <button id="btnDailyBonus" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-stone-950 font-bold px-2 py-1 rounded-lg text-[11px] shadow flex items-center gap-1">
           <i class="fa-solid fa-gift"></i> รับ 2,000 ฟรี
         </button>
-        <button id="btnOpenBank" class="bg-stone-800 hover:bg-stone-700 border border-amber-700 px-3 py-1.5 rounded-lg text-xs text-amber-300 font-semibold flex items-center gap-1.5 transition">
+        <button id="btnOpenBank" class="bg-stone-800 hover:bg-stone-700 border border-amber-700 px-2 py-1 rounded-lg text-[11px] text-amber-300 font-semibold flex items-center gap-1">
           <i class="fa-solid fa-building-columns"></i> ธนาคาร
         </button>
-        <!-- ปุ่มออกจากระบบหลัก -->
-        <button id="btnLogoutMain" title="ออกจากระบบ" class="bg-stone-800 hover:bg-rose-900/60 border border-stone-700 text-stone-400 hover:text-rose-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+        <button id="btnAdminPanel" class="hidden bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-950 font-bold px-2 py-1 rounded-lg text-[11px] shadow flex items-center gap-1">
+          <i class="fa-solid fa-screwdriver-wrench"></i> จัดการระบบ
+        </button>
+        <button id="btnLogoutMain" class="bg-stone-800 hover:bg-rose-900 border border-stone-700 text-stone-400 px-2 py-1 rounded-lg text-[11px]">
+          <i class="fa-solid fa-right-from-bracket"></i>
         </button>
       </div>
     </header>
 
-    <!-- Content: Rooms & Actions -->
-    <div class="flex-1 bg-stone-900/80 border border-stone-800 rounded-xl p-4 flex flex-col overflow-hidden">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+    <!-- Rooms Area -->
+    <div class="flex-1 bg-stone-900/80 border border-stone-800 rounded-xl p-3 flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm sm:text-base font-bold text-amber-400 flex items-center gap-1.5">
           <i class="fa-solid fa-door-open"></i> รายการห้องเล่น Saloon
         </h2>
-        <button id="btnOpenCreateRoom" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-4 py-2 rounded-lg text-sm shadow flex items-center gap-2 transition">
+        <button id="btnOpenCreateRoom" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1.5">
           <i class="fa-solid fa-plus"></i> สร้างห้องใหม่
         </button>
       </div>
 
-      <!-- รายชื่อห้อง -->
-      <div id="listRooms" class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pr-1 custom-scrollbar">
+      <div id="listRooms" class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pr-1 custom-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL แอดมินจัดการระบบ ================= -->
+  <div id="modalAdmin" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
+    <div class="w-full max-w-lg bg-stone-900 border-2 border-amber-500 rounded-2xl p-4 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-2 mb-3">
+        <h3 class="text-base font-bold text-amber-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved text-amber-500"></i> แผงควบคุมระบบ (Admin Console)
+        </h3>
+        <button id="btnCloseAdmin" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="bg-stone-950 border border-amber-900/60 p-2.5 rounded-xl mb-3 flex items-center justify-between">
+        <div>
+          <div class="font-bold text-xs text-amber-300">ทดสอบเวลา</div>
+          <div class="text-[10px] text-stone-400">ข้าม 1 วัน (รีเซ็ตรับเงินฟรี + ดอกเบี้ย 5%)</div>
+        </div>
+        <button id="btnAdminSkipDay" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-2.5 py-1 rounded text-xs">
+          ข้าม 1 วัน
+        </button>
+      </div>
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <div id="adminUserList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar"></div>
       </div>
     </div>
   </div>
 
-  <!-- ================= MODAL สร้างห้อง (ตั้งค่าครบวงจร) ================= -->
-  <div id="modalCreateRoom" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-    <div class="w-full max-w-md bg-stone-900 border border-amber-600 rounded-2xl p-6 shadow-2xl space-y-4">
-      <div class="flex justify-between items-center border-b border-stone-700 pb-3">
-        <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-          <i class="fa-solid fa-circle-plus"></i> ตั้งค่าห้องใหม่
-        </h3>
-        <button id="btnCloseCreateRoom" class="text-stone-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+  <!-- ================= MODAL สร้างห้อง ================= -->
+  <div id="modalCreateRoom" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3">
+    <div class="w-full max-w-sm bg-stone-900 border border-amber-600 rounded-2xl p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-2">
+        <h3 class="text-base font-bold text-amber-400"><i class="fa-solid fa-circle-plus"></i> ตั้งค่าห้องใหม่</h3>
+        <button id="btnCloseCreateRoom" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div>
-        <label class="block text-xs text-stone-300 mb-1">ชื่อห้อง</label>
-        <input type="text" id="newRoomName" class="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="เช่น Saloon โคตรเซียน">
+        <label class="block text-[11px] text-stone-300 mb-1">ชื่อห้อง</label>
+        <input type="text" id="newRoomName" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white">
       </div>
-
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="block text-xs text-stone-300 mb-1">จำนวนผู้เล่นสูงสุด</label>
-          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          <label class="block text-[11px] text-stone-300 mb-1">ผู้เล่นสูงสุด</label>
+          <select id="newMaxPlayers" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
             <option value="2">2 คน</option>
             <option value="4">4 คน</option>
             <option value="6" selected>6 คน</option>
@@ -147,157 +184,124 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs text-stone-300 mb-1">รูปแบบห้อง</label>
-          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          <label class="block text-[11px] text-stone-300 mb-1">รูปแบบห้อง</label>
+          <select id="newRoomMode" class="w-full bg-stone-800 border border-stone-700 rounded px-2 py-1 text-xs text-white">
             <option value="human">เล่นกับคนเท่านั้น</option>
             <option value="bot">เติมบอทอัตโนมัติ</option>
           </select>
         </div>
       </div>
-
       <div>
-        <label class="block text-xs text-stone-300 mb-1">รหัสผ่านห้อง (เว้นว่างได้ถ้าเปิดสาธารณะ)</label>
-        <input type="password" id="newRoomPassword" class="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="ตั้งรหัสผ่าน 4-6 ตัว">
+        <label class="block text-[11px] text-stone-300 mb-1">รหัสผ่านห้อง (ถ้ามี)</label>
+        <input type="password" id="newRoomPassword" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-xs text-white" placeholder="เว้นว่างได้">
       </div>
-
-      <div class="flex justify-end gap-2 pt-2">
-        <button id="btnCancelCreateRoom" class="px-4 py-2 rounded bg-stone-800 hover:bg-stone-700 text-stone-300 text-sm">ยกเลิก</button>
-        <button id="btnSubmitCreateRoom" class="px-5 py-2 rounded bg-amber-600 hover:bg-amber-500 font-bold text-stone-950 text-sm transition">ยืนยันสร้างห้อง</button>
+      <div class="flex justify-end gap-2 pt-1">
+        <button id="btnCancelCreateRoom" class="px-3 py-1.5 rounded bg-stone-800 text-stone-300 text-xs">ยกเลิก</button>
+        <button id="btnSubmitCreateRoom" class="px-4 py-1.5 rounded bg-amber-600 font-bold text-stone-950 text-xs">สร้างห้อง</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= MODAL ธนาคาร (SALOON BANK) ================= -->
-  <div id="modalBank" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-    <div class="w-full max-w-lg bg-stone-900 border border-amber-600 rounded-2xl p-6 shadow-2xl space-y-4">
-      <div class="flex justify-between items-center border-b border-stone-700 pb-3">
-        <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-          <i class="fa-solid fa-building-columns"></i> ธนาคารคาวบอย (Saloon Bank)
-        </h3>
-        <button id="btnCloseBank" class="text-stone-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+  <!-- ================= MODAL ธนาคาร ================= -->
+  <div id="modalBank" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3">
+    <div class="w-full max-w-sm bg-stone-900 border border-amber-600 rounded-2xl p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b border-stone-700 pb-2">
+        <h3 class="text-base font-bold text-amber-400"><i class="fa-solid fa-building-columns"></i> ธนาคาร Saloon</h3>
+        <button id="btnCloseBank" class="text-stone-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
-      <!-- สรุปสถานะบัญชี -->
-      <div class="grid grid-cols-2 gap-3 text-center">
-        <div class="bg-stone-800 p-3 rounded-xl border border-stone-700">
-          <div class="text-xs text-stone-400">เงินฝากทั้งหมด (ดอกเบี้ย 5%/วัน)</div>
-          <div id="lblBankSavings" class="text-xl font-bold text-emerald-400 mt-1">0 🪙</div>
+      <div class="grid grid-cols-2 gap-2 text-center text-xs">
+        <div class="bg-stone-800 p-2 rounded border border-stone-700">
+          <div class="text-stone-400 text-[10px]">เงินฝาก (5%/วัน)</div>
+          <div id="lblBankSavings" class="text-sm font-bold text-emerald-400 mt-0.5">0 🪙</div>
         </div>
-        <div class="bg-stone-800 p-3 rounded-xl border border-stone-700">
-          <div class="text-xs text-stone-400">หนี้สินคงค้าง (ดอกเบี้ย 5%/วัน)</div>
-          <div id="lblBankDebt" class="text-xl font-bold text-rose-400 mt-1">0 🪙</div>
+        <div class="bg-stone-800 p-2 rounded border border-stone-700">
+          <div class="text-stone-400 text-[10px]">หนี้สิน (5%/วัน)</div>
+          <div id="lblBankDebt" class="text-sm font-bold text-rose-400 mt-0.5">0 🪙</div>
         </div>
       </div>
-
-      <!-- ช่องกรอกจำนวนเงิน -->
       <div>
-        <label class="block text-xs text-stone-300 mb-1">จำนวนเหรียญที่ต้องการทำรายการ</label>
-        <input type="number" id="inputBankAmount" min="10" step="50" class="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500" placeholder="ระบุจำนวนเหรียญ">
+        <input type="number" id="inputBankAmount" min="10" step="50" class="w-full bg-stone-800 border border-stone-700 rounded px-2.5 py-1.5 text-white font-bold text-xs" placeholder="ระบุจำนวนเหรียญ">
       </div>
-
-      <!-- ปุ่มดำเนินการ 4 รายการ -->
-      <div class="grid grid-cols-2 gap-2 pt-1">
-        <button onclick="doBankAction('deposit')" class="py-2.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
-          <i class="fa-solid fa-arrow-down"></i> ฝากเงิน
-        </button>
-        <button onclick="doBankAction('withdraw')" class="py-2.5 rounded bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
-          <i class="fa-solid fa-arrow-up"></i> ถอนเงิน
-        </button>
-        <button onclick="doBankAction('borrow')" class="py-2.5 rounded bg-amber-700 hover:bg-amber-600 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 transition">
-          <i class="fa-solid fa-hand-holding-dollar"></i> ขอกู้ยืมเงิน
-        </button>
-        <button onclick="doBankAction('repay')" class="py-2.5 rounded bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
-          <i class="fa-solid fa-receipt"></i> ชำระหนี้
-        </button>
+      <div class="grid grid-cols-2 gap-1.5">
+        <button onclick="doBankAction('deposit')" class="py-1.5 rounded bg-emerald-700 text-white font-bold text-xs">ฝากเงิน</button>
+        <button onclick="doBankAction('withdraw')" class="py-1.5 rounded bg-teal-700 text-white font-bold text-xs">ถอนเงิน</button>
+        <button onclick="doBankAction('borrow')" class="py-1.5 rounded bg-amber-700 text-stone-950 font-bold text-xs">กู้เงิน</button>
+        <button onclick="doBankAction('repay')" class="py-1.5 rounded bg-rose-700 text-white font-bold text-xs">ใช้หนี้</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= 3. หน้าโต๊ะเกม (GAME SALOON TABLE) ================= -->
-  <div id="screenGame" class="hidden relative w-full h-full max-w-[1100px] max-h-[640px] flex flex-col justify-between p-3">
+  <!-- ================= 3. หน้าโต๊ะเกม (GAME TABLE) ================= -->
+  <div id="screenGame" class="hidden relative w-full h-full max-w-[1020px] max-h-[600px] flex flex-col justify-between p-2">
     <!-- Top HUD Bar -->
-    <div class="flex items-center justify-between bg-stone-900/90 border border-amber-900 rounded-xl px-4 py-2 text-xs">
-      <div class="flex items-center gap-3">
-        <!-- ออกจากห้อง: กลับไปหน้า Lobby ไม่เด้งไปหน้าล็อกอิน -->
-        <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded-lg border border-stone-700 flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-arrow-left"></i> ออกจากห้อง
+    <div class="flex items-center justify-between bg-stone-900/90 border border-amber-900 rounded-xl px-3 py-1.5 text-xs">
+      <div class="flex items-center gap-2">
+        <button id="btnLeaveRoom" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded border border-stone-700 text-[11px]">
+          <i class="fa-solid fa-arrow-left"></i> ออก
+        </button>
+        <!-- ปุ่มลุก / นั่งที่โต๊ะ -->
+        <button id="btnToggleSeat" class="bg-amber-700/80 hover:bg-amber-600 text-stone-950 font-bold px-2 py-1 rounded text-[11px] transition">
+          <i class="fa-solid fa-chair"></i> <span id="lblSeatAction">ลุกจากโต๊ะ</span>
         </button>
         <div>
-          <span class="text-amber-400 font-bold text-sm" id="hudRoomName">Saloon Room</span>
-          <span class="text-stone-400 text-xs ml-2" id="hudRoomCode">#000000</span>
+          <span class="text-amber-400 font-bold text-xs" id="hudRoomName">Saloon</span>
+          <span class="text-stone-400 text-[10px] ml-1" id="hudRoomCode">#000000</span>
         </div>
       </div>
 
-      <!-- Pot กองกลาง -->
-      <div class="flex items-center gap-3 bg-stone-950 border border-amber-500/50 px-4 py-1.5 rounded-full shadow-inner">
-        <span class="text-stone-400 text-[11px]">กองกลาง (POT):</span>
-        <i class="fa-solid fa-coins text-amber-400"></i>
-        <span id="hudPot" class="text-xl font-black text-amber-300 font-rye">0</span>
+      <div class="flex items-center gap-2 bg-stone-950 border border-amber-500/50 px-3 py-1 rounded-full">
+        <span class="text-stone-400 text-[10px]">POT:</span>
+        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+        <span id="hudPot" class="text-base font-black text-amber-300 font-rye">0</span>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-3 py-1.5 rounded-lg border border-stone-700 text-xs">
-          <i class="fa-solid fa-scroll"></i> ไพ่ที่ออก
-        </button>
-      </div>
+      <button id="btnHistory" class="bg-stone-800 hover:bg-stone-700 text-amber-300 px-2 py-1 rounded text-[11px]">
+        <i class="fa-solid fa-scroll"></i> ไพ่ที่ออก
+      </button>
     </div>
 
-    <!-- The Poker Felt Table -->
-    <div class="relative flex-1 table-felt rounded-[160px] my-2 flex items-center justify-center overflow-hidden">
-      <!-- Saloon Stamp -->
+    <!-- Table Felt -->
+    <div class="relative flex-1 table-felt rounded-[140px] my-1.5 flex items-center justify-center overflow-hidden">
       <div class="absolute text-center opacity-20 pointer-events-none">
-        <div class="text-6xl font-rye text-amber-200">FiwTeeTak</div>
-        <div class="text-xs uppercase tracking-widest text-amber-100">Classic Saloon Saloon Rules</div>
+        <div class="text-5xl font-rye text-amber-200">FiwTeeTak</div>
       </div>
 
-      <!-- Showcase กลางโต๊ะ -->
       <div class="relative z-20 flex flex-col items-center">
-        <div id="boxShowcase" class="flex items-center gap-6 mb-2 min-h-[90px]">
+        <div id="boxShowcase" class="flex items-center gap-4 mb-1 min-h-[80px]">
           <div class="flex flex-col items-center">
-            <span class="text-[10px] text-stone-300 mb-1">ไพ่กองกลาง</span>
-            <div id="cardCommunity" class="w-14 h-20 bg-stone-800 border-2 border-stone-600 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg">
-              ?
-            </div>
+            <span class="text-[9px] text-stone-300 mb-0.5">กองกลาง</span>
+            <div id="cardCommunity" class="w-12 h-16 bg-stone-800 border-2 border-stone-600 rounded flex items-center justify-center font-bold text-lg shadow">?</div>
           </div>
-
-          <div id="showcaseVS" class="hidden text-amber-400 font-black text-lg">VS</div>
-
+          <div id="showcaseVS" class="hidden text-amber-400 font-black text-sm">VS</div>
           <div id="boxWinningReveal" class="hidden flex flex-col items-center">
-            <span class="text-[10px] text-amber-300 mb-1 font-bold">ไพ่ใบใหญ่สุดที่ชนะ</span>
-            <div id="cardWinningReveal" class="w-14 h-20 bg-white text-stone-900 rounded-lg flex items-center justify-center font-bold text-xl shadow-2xl gold-spotlight">
-              -
-            </div>
+            <span class="text-[9px] text-amber-300 mb-0.5 font-bold">ไพ่ชนะ</span>
+            <div id="cardWinningReveal" class="w-12 h-16 bg-white text-stone-900 rounded flex items-center justify-center font-bold text-lg shadow gold-spotlight">-</div>
           </div>
         </div>
 
-        <div id="txtGameStatus" class="text-sm font-bold text-amber-300 min-h-[22px] text-center drop-shadow"></div>
-        <button id="btnStartGameAction" class="hidden mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black px-6 py-2 rounded-full shadow-lg text-sm transition animate-bounce">
+        <div id="txtGameStatus" class="text-xs font-bold text-amber-300 min-h-[18px] text-center drop-shadow"></div>
+        <button id="btnStartGameAction" class="hidden mt-1 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-black px-5 py-1.5 rounded-full text-xs animate-bounce shadow">
           <i class="fa-solid fa-play"></i> กดเริ่มเกมส์
         </button>
       </div>
 
-      <!-- ที่นั่งผู้เล่น -->
       <div id="seatsContainer" class="absolute inset-0 pointer-events-none"></div>
     </div>
 
-    <!-- Action Bar -->
-    <div id="controlsBar" class="bg-stone-900/95 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-1.5">
-        <span class="text-xs text-stone-400 mr-1">ไพ่ของคุณ:</span>
-        <div id="myHandCards" class="flex gap-1.5"></div>
+    <!-- Controls Bottom -->
+    <div id="controlsBar" class="bg-stone-900/95 border border-stone-800 rounded-xl p-2 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-1">
+        <span class="text-[10px] text-stone-400 mr-0.5">ไพ่:</span>
+        <div id="myHandCards" class="flex gap-1"></div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-stone-400">เดิมพัน:</span>
-          <input type="number" id="inputBetNumber" min="10" value="10" class="w-20 bg-stone-950 border border-amber-600/70 rounded px-2 py-1 text-center font-bold text-amber-400">
-        </div>
-
-        <button id="btnBetAction" class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-black px-5 py-2 rounded-lg shadow-md transition text-sm flex items-center gap-2">
-          <i class="fa-solid fa-coins"></i> วางเดิมพัน!
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] text-stone-400">แทง:</span>
+        <input type="number" id="inputBetNumber" min="10" value="10" class="w-16 bg-stone-950 border border-amber-600/70 rounded px-1.5 py-1 text-center font-bold text-amber-400 text-xs">
+        <button id="btnBetAction" class="bg-gradient-to-r from-amber-600 to-amber-700 text-stone-950 font-black px-3.5 py-1.5 rounded-lg text-xs shadow">
+          เดิมพัน!
         </button>
-
-        <div id="boxTimer" class="hidden flex items-center gap-1.5 bg-stone-950 border border-stone-700 px-3 py-1.5 rounded-lg text-amber-400 font-bold text-xs">
+        <div id="boxTimer" class="hidden flex items-center gap-1 bg-stone-950 border border-stone-700 px-2 py-1 rounded text-amber-400 font-bold text-xs">
           <i class="fa-solid fa-stopwatch animate-pulse"></i>
           <span id="lblCountdown">20</span>s
         </div>
@@ -310,37 +314,45 @@
     let currentUser = null;
     let isRegisterMode = false;
     let turnTimerInterval = null;
+    let isSpectating = false;
 
-    // Screens
     const screenAuth = document.getElementById('screenAuth');
     const screenLobby = document.getElementById('screenLobby');
     const screenGame = document.getElementById('screenGame');
 
-    // Modals
     const modalCreateRoom = document.getElementById('modalCreateRoom');
     const modalBank = document.getElementById('modalBank');
+    const modalAdmin = document.getElementById('modalAdmin');
+    const btnAdminPanel = document.getElementById('btnAdminPanel');
 
-    // Tab Switch Auth
+    // Toggle Password Visibility
+    document.getElementById('btnTogglePassword').onclick = () => {
+      const p = document.getElementById('authPassword');
+      const isPass = p.type === 'password';
+      p.type = isPass ? 'text' : 'password';
+      document.getElementById('iconTogglePassword').className = isPass ? 'fa-solid fa-eye-slash text-xs' : 'fa-solid fa-eye text-xs';
+    };
+
+    // Tabs
     document.getElementById('tabBtnLogin').onclick = () => {
       isRegisterMode = false;
-      document.getElementById('tabBtnLogin').className = "flex-1 py-2 text-center text-amber-400 font-bold border-b-2 border-amber-500";
-      document.getElementById('tabBtnRegister').className = "flex-1 py-2 text-center text-stone-400 font-bold hover:text-stone-200";
+      document.getElementById('tabBtnLogin').className = "flex-1 py-1.5 text-center text-amber-400 font-bold border-b-2 border-amber-500 text-sm";
+      document.getElementById('tabBtnRegister').className = "flex-1 py-1.5 text-center text-stone-400 font-bold hover:text-stone-200 text-sm";
       document.getElementById('btnAuthSubmit').innerText = "เข้าสู่ระบบ";
     };
     document.getElementById('tabBtnRegister').onclick = () => {
       isRegisterMode = true;
-      document.getElementById('tabBtnRegister').className = "flex-1 py-2 text-center text-amber-400 font-bold border-b-2 border-amber-500";
-      document.getElementById('tabBtnLogin').className = "flex-1 py-2 text-center text-stone-400 font-bold hover:text-stone-200";
+      document.getElementById('tabBtnRegister').className = "flex-1 py-1.5 text-center text-amber-400 font-bold border-b-2 border-amber-500 text-sm";
+      document.getElementById('tabBtnLogin').className = "flex-1 py-1.5 text-center text-stone-400 font-bold hover:text-stone-200 text-sm";
       document.getElementById('btnAuthSubmit').innerText = "สมัครสมาชิก";
     };
 
-    // เข้าสู่ระบบ / สมัครสมาชิก
     document.getElementById('btnAuthSubmit').onclick = () => {
       const u = document.getElementById('authUsername').value.trim();
       const p = document.getElementById('authPassword').value.trim();
       const err = document.getElementById('txtAuthError');
       err.innerText = '';
-      if (!u || !p) return err.innerText = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+      if (!u || !p) return err.innerText = 'กรุณากรอกข้อมูลให้ครบ';
 
       const evt = isRegisterMode ? 'auth:register' : 'auth:login';
       socket.emit(evt, { username: u, password: p }, (res) => {
@@ -358,42 +370,81 @@
     function updateLobbyUI() {
       if (!currentUser) return;
       document.getElementById('lblPlayerUsername').innerText = currentUser.username;
-      document.getElementById('lblPlayerChips').innerText = currentUser.chips.toLocaleString();
+      document.getElementById('lblPlayerChips').innerText = (currentUser.chips || 0).toLocaleString();
+
+      if (currentUser.role === 'admin' || currentUser.username === 'admin') {
+        btnAdminPanel.classList.remove('hidden');
+      } else {
+        btnAdminPanel.classList.add('hidden');
+      }
     }
 
-    // ออกจากระบบจากหน้า Lobby
-    document.getElementById('btnLogoutMain').onclick = () => {
-      if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-        location.reload();
-      }
+    // Admin Panel
+    btnAdminPanel.onclick = () => {
+      loadAdminUsersList();
+      modalAdmin.classList.remove('hidden');
+    };
+    document.getElementById('btnCloseAdmin').onclick = () => modalAdmin.classList.add('hidden');
+
+    function loadAdminUsersList() {
+      socket.emit('admin:get_players', {}, (res) => {
+        if (!res.success) return;
+        document.getElementById('adminUserList').innerHTML = res.list.map(u => `
+          <div class="bg-stone-800 p-2.5 rounded-lg border border-stone-700 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-amber-300">${u.username}</span>
+              <span class="text-stone-400 text-[10px] ml-2">🪙 ${u.chips.toLocaleString()}</span>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="adminAddChips('${u.username}')" class="bg-amber-600 px-2 py-0.5 rounded text-stone-950 font-bold text-[10px]">+เหรียญ</button>
+              <button onclick="adminClearDebt('${u.username}')" class="bg-stone-700 px-2 py-0.5 rounded text-[10px]">ล้างหนี้</button>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+
+    window.adminAddChips = (targetUser) => {
+      const amt = prompt(`เพิ่มเหรียญให้ ${targetUser}:`, '5000');
+      if (amt) socket.emit('admin:mod_user', { targetUser, addChips: parseInt(amt) }, () => loadAdminUsersList());
+    };
+    window.adminClearDebt = (targetUser) => {
+      if (confirm(`ล้างหนี้ ${targetUser}?`)) socket.emit('admin:mod_user', { targetUser, clearDebt: true }, () => loadAdminUsersList());
     };
 
-    // รับเงินประจำวัน 2,000
+    document.getElementById('btnAdminSkipDay').onclick = () => {
+      socket.emit('admin:skip_day', {}, (res) => {
+        if (res.success) {
+          currentUser = res.user;
+          updateLobbyUI();
+          alert('ข้าม 1 วันเรียบร้อย');
+        }
+      });
+    };
+
+    // Daily & Bank
     document.getElementById('btnDailyBonus').onclick = () => {
       socket.emit('user:claim_daily', {}, (res) => {
         if (res.success) {
           currentUser.chips = res.chips;
           updateLobbyUI();
-          alert('🎉 ได้รับเหรียญฟรี 2,000 เหรียญเรียบร้อยแล้ว!');
+          alert('🎉 ได้รับ 2,000 เหรียญ!');
         } else {
-          alert(res.msg || 'ยังไม่ถึงรอบรับเหรียญประจำวัน');
+          alert(res.msg);
         }
       });
     };
 
-    // ================= ระบบธนาคาร =================
     document.getElementById('btnOpenBank').onclick = () => {
       document.getElementById('lblBankSavings').innerText = (currentUser.bankSavings || 0).toLocaleString() + ' 🪙';
       document.getElementById('lblBankDebt').innerText = (currentUser.bankDebt || 0).toLocaleString() + ' 🪙';
-      document.getElementById('inputBankAmount').value = '';
       modalBank.classList.remove('hidden');
     };
     document.getElementById('btnCloseBank').onclick = () => modalBank.classList.add('hidden');
 
-    window.doBankAction = function(type) {
+    window.doBankAction = (type) => {
       const amt = parseInt(document.getElementById('inputBankAmount').value);
-      if (!amt || amt <= 0) return alert('กรุณาระบุจำนวนเหรียญให้ถูกต้อง');
-
+      if (!amt || amt <= 0) return alert('ระบุจำนวนเหรียญ');
       socket.emit('bank:action', { type, amount: amt }, (res) => {
         if (res.success) {
           currentUser = res.user;
@@ -401,17 +452,14 @@
           document.getElementById('lblBankSavings').innerText = (currentUser.bankSavings || 0).toLocaleString() + ' 🪙';
           document.getElementById('lblBankDebt').innerText = (currentUser.bankDebt || 0).toLocaleString() + ' 🪙';
           document.getElementById('inputBankAmount').value = '';
-          alert('ทำรายการสำเร็จเรียบร้อย');
-        } else {
-          alert(res.msg || 'ทำรายการไม่สำเร็จ');
+          alert('ทำรายการเรียบร้อย');
         }
       });
     };
 
-    // ================= ระบบสร้างห้อง (Modal) =================
+    // Rooms & Navigation
     document.getElementById('btnOpenCreateRoom').onclick = () => {
       document.getElementById('newRoomName').value = `${currentUser.username}'s Saloon`;
-      document.getElementById('newRoomPassword').value = '';
       modalCreateRoom.classList.remove('hidden');
     };
     document.getElementById('btnCloseCreateRoom').onclick = () => modalCreateRoom.classList.add('hidden');
@@ -431,42 +479,36 @@
       });
     };
 
-    // อัปเดตรายการห้อง
     socket.on('lobby:rooms_update', (rooms) => {
-      const container = document.getElementById('listRooms');
-      if (!container) return;
+      const c = document.getElementById('listRooms');
+      if (!c) return;
       if (rooms.length === 0) {
-        container.innerHTML = '<div class="col-span-full text-center text-stone-500 py-10">ยังไม่มีห้องที่เปิดอยู่ กดสร้างห้องเพื่อเริ่มเล่นได้เลย</div>';
+        c.innerHTML = '<div class="col-span-full text-center text-stone-500 py-6 text-xs">ยังไม่มีห้องที่เปิดอยู่ กดสร้างห้องเพื่อเริ่มเล่น</div>';
         return;
       }
-      container.innerHTML = rooms.map(r => `
-        <div class="bg-stone-800/80 border border-stone-700 hover:border-amber-600 rounded-xl p-3 flex justify-between items-center transition">
+      c.innerHTML = rooms.map(r => `
+        <div class="bg-stone-800/80 border border-stone-700 rounded-xl p-2.5 flex justify-between items-center text-xs">
           <div>
-            <div class="font-bold text-amber-300 text-sm flex items-center gap-1.5">
-              ${r.name} ${r.hasPassword ? '<i class="fa-solid fa-lock text-xs text-amber-400"></i>' : ''}
-            </div>
-            <div class="text-xs text-stone-400">เลขห้อง: #${r.code} | คน: ${r.players}/${r.maxPlayers}</div>
-            <div class="text-[11px] text-amber-500/90">กองกลาง: ${r.pot.toLocaleString()} เหรียญ</div>
+            <div class="font-bold text-amber-300">${r.name} ${r.hasPassword ? '🔒' : ''}</div>
+            <div class="text-[10px] text-stone-400">#${r.code} | คน: ${r.players}/${r.maxPlayers}</div>
+            <div class="text-[10px] text-amber-500">POT: ${r.pot.toLocaleString()}</div>
           </div>
-          <button onclick="joinRoom('${r.code}', ${r.hasPassword})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1.5 rounded text-xs transition">
+          <button onclick="joinRoom('${r.code}', ${r.hasPassword})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1.5 rounded text-xs">
             เข้าร่วม
           </button>
         </div>
       `).join('');
     });
 
-    window.joinRoom = function(code, hasPassword) {
+    window.joinRoom = (code, hasPassword) => {
       let pwd = null;
       if (hasPassword) {
-        pwd = prompt('ห้องนี้มีรหัสผ่าน กรุณากรอกรหัสผ่านห้อง:');
+        pwd = prompt('กรอกรหัสผ่านห้อง:');
         if (pwd === null) return;
       }
       socket.emit('room:join', { roomCode: code, password: pwd }, (res) => {
-        if (res.success) {
-          enterGameScreen(code);
-        } else {
-          alert(res.msg || 'ไม่สามารถเข้าห้องได้');
-        }
+        if (res.success) enterGameScreen(code);
+        else alert(res.msg);
       });
     };
 
@@ -475,12 +517,14 @@
       screenGame.classList.remove('hidden');
     }
 
-    // ออกจากห้อง -> กลับไปหน้า Lobby โดยตรง
+    document.getElementById('btnLogoutMain').onclick = () => {
+      if (confirm('ออกจากระบบ?')) location.reload();
+    };
+
     document.getElementById('btnLeaveRoom').onclick = () => {
-      if (confirm('คุณต้องการออกจากห้องนี้กลับไปหน้าเลือกห้องใช่หรือไม่?')) {
+      if (confirm('ออกจากห้องกลับหน้าเลือกห้อง?')) {
         socket.disconnect();
         socket.connect();
-        // เชื่อมต่อกลับและดึงสถานะผู้ใช้เดิม
         socket.emit('auth:login', { username: currentUser.username, password: currentUser.password }, (res) => {
           if (res.success) currentUser = res.user;
           screenGame.classList.add('hidden');
@@ -490,25 +534,44 @@
       }
     };
 
-    // ================= กติกาในโต๊ะเกม =================
+    // ปุ่ม ลุก / นั่งที่โต๊ะ
+    document.getElementById('btnToggleSeat').onclick = () => {
+      if (isSpectating) {
+        socket.emit('game:sit_down');
+      } else {
+        socket.emit('game:stand_up');
+      }
+    };
+
+    // Game Table Sync
     socket.on('game:state_sync', (state) => {
       document.getElementById('hudRoomName').innerText = state.name;
       document.getElementById('hudRoomCode').innerText = `#${state.code}`;
       document.getElementById('hudPot').innerText = state.pot.toLocaleString();
 
+      // ตรวจสอบว่าตนเองนั่งอยู่หรือเป็นผู้ชม
+      isSpectating = state.spectators && state.spectators.includes(currentUser.username);
+      document.getElementById('lblSeatAction').innerText = isSpectating ? 'นั่งลงเล่น' : 'ลุกจากโต๊ะ';
+      document.getElementById('btnToggleSeat').className = isSpectating 
+        ? 'bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2 py-1 rounded text-[11px] transition'
+        : 'bg-amber-700/80 hover:bg-amber-600 text-stone-950 font-bold px-2 py-1 rounded text-[11px] transition';
+
       const me = state.players.find(p => p.username === currentUser.username);
       const handBox = document.getElementById('myHandCards');
       handBox.innerHTML = '';
-      if (me && me.hand) {
+      if (me && me.hand && !isSpectating) {
         me.hand.forEach(c => {
           handBox.innerHTML += `
-            <div class="w-10 h-14 bg-white text-stone-900 border border-stone-300 rounded flex flex-col items-center justify-center font-bold text-xs shadow ${c.color === 'red' ? 'text-rose-600' : 'text-stone-900'}">
+            <div class="w-8 h-11 bg-white text-stone-900 border border-stone-300 rounded flex flex-col items-center justify-center font-bold text-[10px] shadow ${c.color === 'red' ? 'text-rose-600' : 'text-stone-900'}">
               <span>${c.rank}</span>
-              <span class="text-sm">${c.suit}</span>
+              <span class="text-xs leading-none">${c.suit}</span>
             </div>
           `;
         });
+      } else if (isSpectating) {
+        handBox.innerHTML = '<span class="text-[10px] text-amber-500/80 italic">คุณกำลังยืนดูรอบโต๊ะ</span>';
       }
+
       renderSeats(state.players, state.activeTurnIndex);
     });
 
@@ -524,12 +587,12 @@
 
         c.innerHTML += `
           <div class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto" style="left: ${left}%; top: ${top}%;">
-            <div class="relative w-12 h-12 rounded-full border-2 ${isTurn ? 'border-amber-400 gold-glow animate-pulse' : 'border-stone-600'} bg-stone-800 flex items-center justify-center text-xl shadow-lg">
+            <div class="relative w-10 h-10 rounded-full border-2 ${isTurn ? 'border-amber-400 gold-glow animate-pulse' : 'border-stone-600'} bg-stone-800 flex items-center justify-center text-base shadow">
               🤠
             </div>
-            <div class="bg-stone-900/90 border border-stone-700 px-2 py-0.5 rounded text-[11px] font-bold text-amber-200 mt-1 text-center shadow">
+            <div class="bg-stone-900/90 border border-stone-700 px-1.5 py-0.5 rounded text-[9px] font-bold text-amber-200 mt-0.5 text-center shadow">
               <div>${p.username}</div>
-              <div class="text-[10px] text-amber-400 font-normal">${p.chips.toLocaleString()} 🪙</div>
+              <div class="text-[8px] text-amber-400 font-normal">${p.chips.toLocaleString()} 🪙</div>
             </div>
           </div>
         `;
@@ -548,7 +611,7 @@
 
     socket.on('game:turn_start', ({ activeUsername, timeoutSec }) => {
       const isMe = activeUsername === currentUser.username;
-      document.getElementById('txtGameStatus').innerText = isMe ? '👉 ถึงตาคุณแล้ว! เลือกลงเดิมพัน' : `กำลังรอ ${activeUsername} เดิมพัน...`;
+      document.getElementById('txtGameStatus').innerText = isMe ? '👉 ตาคุณแล้ว! เดิมพัน' : `รอ ${activeUsername}...`;
       
       const timerBox = document.getElementById('boxTimer');
       const timerLbl = document.getElementById('lblCountdown');
@@ -578,7 +641,7 @@
       document.getElementById('hudPot').innerText = potNow.toLocaleString();
       
       const commBox = document.getElementById('cardCommunity');
-      commBox.className = `w-14 h-20 bg-white rounded-lg flex flex-col items-center justify-center font-bold text-lg shadow-xl ${communityCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
+      commBox.className = `w-12 h-16 bg-white rounded flex flex-col items-center justify-center font-bold text-base shadow ${communityCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
       commBox.innerHTML = `<span>${communityCard.rank}</span><span>${communityCard.suit}</span>`;
 
       const winBox = document.getElementById('boxWinningReveal');
@@ -588,18 +651,18 @@
       if (isWin && winningCard) {
         vsText.classList.remove('hidden');
         winBox.classList.remove('hidden');
-        winCard.className = `w-14 h-20 bg-white rounded-lg flex flex-col items-center justify-center font-bold text-lg shadow-2xl gold-spotlight ${winningCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
+        winCard.className = `w-12 h-16 bg-white rounded flex flex-col items-center justify-center font-bold text-base shadow gold-spotlight ${winningCard.color === 'red' ? 'text-rose-600' : 'text-stone-900'}`;
         winCard.innerHTML = `<span>${winningCard.rank}</span><span>${winningCard.suit}</span>`;
-        document.getElementById('txtGameStatus').innerHTML = `<span class="text-amber-400">🎉 ${player} ชนะเดิมพัน +${betAmount.toLocaleString()} เหรียญ!</span>`;
+        document.getElementById('txtGameStatus').innerHTML = `<span class="text-amber-400">🎉 ${player} ชนะ +${betAmount.toLocaleString()} 🪙</span>`;
       } else {
         vsText.classList.add('hidden');
         winBox.classList.add('hidden');
-        document.getElementById('txtGameStatus').innerHTML = `<span class="text-stone-400">${player} แพ้ เสีย ${betAmount.toLocaleString()} เข้ากองกลาง</span>`;
+        document.getElementById('txtGameStatus').innerHTML = `<span class="text-stone-400">${player} แพ้ (${betAmount.toLocaleString()} เข้ากองกลาง)</span>`;
       }
     });
 
     socket.on('game:pot_split_jackpot', ({ perPlayer }) => {
-      alert(`💥 JACKPOT แตก! กองกลางถูกปันผล 80% แจกให้ผู้เล่นทุกคนคนละ ${perPlayer.toLocaleString()} เหรียญ!`);
+      alert(`💥 JACKPOT 80%! ทุกคนได้รับคนละ ${perPlayer.toLocaleString()} เหรียญ`);
     });
   </script>
 </body>

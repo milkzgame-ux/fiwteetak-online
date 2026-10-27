@@ -92,6 +92,7 @@ io.on('connection', (socket) => {
   let currentAuthUser = null;
   let currentRoomId = null;
 
+  // กู้คืนฐานข้อมูลจาก Client (แก้ปัญหา Render ลบไฟล์ตอนอัปเดต)
   socket.on('db:sync_restore', ({ backupData }) => {
     if (backupData && typeof backupData === 'object') {
       let updated = false;
@@ -437,7 +438,7 @@ io.on('connection', (socket) => {
           const tId = setTimeout(() => {
             handlePlayerLeave(socket, room.code, currentAuthUser);
             delete DISCONNECTED_PLAYERS[currentAuthUser];
-          }, 180000);
+          }, 180000); // 3 นาที
 
           DISCONNECTED_PLAYERS[currentAuthUser] = {
             roomCode: room.code,
@@ -555,15 +556,14 @@ function startNewGameRound(room) {
 
   room.activeTurnIndex = room.dealerIndex;
   
-  // แจ้งลูกข่ายเพื่อยิงแอนิเมชัน
   io.to(room.code).emit('game:dealing_cards');
 
-  // รออนิเมชันแจกไพ่บินเสร็จ (ประมาณ 2-2.5 วิ) ค่อยให้ไพ่คว่ำปรากฏและเริ่มเวลา
+  // รออนิเมชันบินเสร็จ (1.5 วินาที)
   setTimeout(() => {
     room.cardsDealt = true;
     emitRoomState(room);
     startTurnTimer(room);
-  }, 2500);
+  }, 1500);
 
   emitRoomState(room);
 }
@@ -575,7 +575,7 @@ function startTurnTimer(room) {
 
   const currentDisplayName = currentP.displayName || currentP.username;
   
-  // เปลี่ยนเป็น 30 วินาทีตามที่ขอ
+  // ตั้งเวลาเทิร์น 30 วินาที
   io.to(room.code).emit('game:turn_start', {
     activeUsername: currentP.username,
     activeDisplayName: currentDisplayName,
@@ -587,13 +587,13 @@ function startTurnTimer(room) {
       const maxBet = Math.min(currentP.chips, room.pot);
       const betAmt = Math.min(Math.max(10, Math.floor(Math.random() * (maxBet - 10 + 1)) + 10), maxBet);
       processPlayerBet(room, currentP, betAmt);
-    }, 2000);
+    }, 1800);
     return;
   }
 
-  // ตัวจับเวลาของ Server (30 วินาที)
+  // 30 วินาทีบังคับหมอบ
   room.timer = setTimeout(() => {
-    processPlayerBet(room, currentP, 10); // หมดเวลาจับหมอบ/เทขั้นต่ำ
+    processPlayerBet(room, currentP, 10);
   }, 30000);
 }
 
@@ -663,6 +663,7 @@ function checkNextTurnOrRoundEnd(room) {
     room.isGameRunning = false;
     room.cardsDealt = false;
 
+    // เตะคนหลุด
     const offlinePlayers = room.players.filter(p => p.isOffline);
     offlinePlayers.forEach(p => {
       handlePlayerLeave(null, room.code, p.username);
@@ -672,6 +673,7 @@ function checkNextTurnOrRoundEnd(room) {
       }
     });
 
+    // ดึงคนที่รอเข้ามาเล่น
     while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
       const waitingP = room.waitingQueue.shift();
       waitingP.isWaiting = false;

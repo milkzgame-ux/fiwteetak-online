@@ -21,10 +21,11 @@ const USERS = {
     bankDebt: 0,
     isBanned: false,
     lastDailyClaim: 0,
-    avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', mustache: 'handlebar', expression: 'smirk' }
+    avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' }
   }
 };
 
+const ACTIVE_SESSIONS = {}; // เก็บ session เพื่อตรวจจับการล็อกอินซ้อน
 const ROOMS = {};
 
 const SUITS = ['♠', '♥', '♦', '♣'];
@@ -45,19 +46,22 @@ function createDeck() {
 }
 
 const BOT_PRESETS = [
-  { name: 'Wyatt', hat: 'cattleman', hatColor: '#2b1d0c', skin: '#ffd1a4', stache: 'horseshoe' },
-  { name: 'Jesse', hat: 'sombrero', hatColor: '#8b0000', skin: '#e0ac69', stache: 'handlebar' },
-  { name: 'Belle', hat: 'gambler', hatColor: '#1a1a1a', skin: '#fcd0a1', stache: 'none' },
-  { name: 'Doc', hat: 'derby', hatColor: '#3d2817', skin: '#ffd1a4', stache: 'walrus' },
-  { name: 'Billy', hat: 'cattleman', hatColor: '#5c4033', skin: '#c68642', stache: 'pencil' }
+  { name: 'Wyatt', hat: 'cattleman', hatColor: '#2b1d0c', skin: '#ffd1a4', sleeve: '#1e3a8a', badge: 'star' },
+  { name: 'Jesse', hat: 'sombrero', hatColor: '#8b0000', skin: '#e0ac69', sleeve: '#14532d', badge: 'feather' },
+  { name: 'Belle', hat: 'gambler', hatColor: '#1c1917', skin: '#fcd0a1', sleeve: '#581c87', badge: 'rose' },
+  { name: 'Doc', hat: 'derby', hatColor: '#3d2817', skin: '#ffd1a4', sleeve: '#78350f', badge: 'cross' },
+  { name: 'Billy', hat: 'cattleman', hatColor: '#713f12', skin: '#c68642', sleeve: '#047857', badge: 'skull' },
+  { name: 'Annie', hat: 'sombrero', hatColor: '#b45309', skin: '#fde047', sleeve: '#b91c1c', badge: 'horseshoe' },
+  { name: 'Morgan', hat: 'gambler', hatColor: '#0f172a', skin: '#ffd1a4', sleeve: '#1e293b', badge: 'star' }
 ];
 
 io.on('connection', (socket) => {
   let currentAuthUser = null;
   let currentRoomId = null;
 
+  // สมัครสมาชิก
   socket.on('auth:register', ({ username, password }, cb) => {
-    if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบ' });
+    if (!username || !password) return cb({ success: false, msg: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
     if (USERS[username]) return cb({ success: false, msg: 'ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว' });
     USERS[username] = {
       username,
@@ -68,19 +72,36 @@ io.on('connection', (socket) => {
       bankDebt: 0,
       isBanned: false,
       lastDailyClaim: 0,
-      avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', mustache: 'handlebar', expression: 'smirk' }
+      avatar: { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' }
     };
     cb({ success: true, user: sanitizeUser(USERS[username]) });
   });
 
+  // เข้าสู่ระบบ (พร้อมระบบเด้งเครื่องเก่าหากเข้าซ้อน)
   socket.on('auth:login', ({ username, password }, cb) => {
     const user = USERS[username];
     if (!user || user.password !== password) return cb({ success: false, msg: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
-    if (user.isBanned) return cb({ success: false, msg: 'บัญชีนี้ถูกระงับการใช้งาน' });
+    if (user.isBanned) return cb({ success: false, msg: 'บัญชีนี้ถูกระงับการใช้งานโดยผู้ดูแล' });
+
+    // เตะเครื่องเก่าออกทันที
+    if (ACTIVE_SESSIONS[username] && ACTIVE_SESSIONS[username] !== socket.id) {
+      const oldSocketId = ACTIVE_SESSIONS[username];
+      const oldSocket = io.sockets.sockets.get(oldSocketId);
+      if (oldSocket) {
+        oldSocket.emit('auth:force_logout', { msg: 'มีการเข้าสู่ระบบซ้อนจากอุปกรณ์อื่น เซสชันของคุณถูกยุติ' });
+        if (oldSocket.currentRoomId) {
+          handlePlayerLeave(oldSocket, oldSocket.currentRoomId, username);
+        }
+        oldSocket.disconnect(true);
+      }
+    }
+
+    ACTIVE_SESSIONS[username] = socket.id;
     currentAuthUser = username;
     cb({ success: true, user: sanitizeUser(user) });
   });
 
+  // อัปเดตอวาตาร์
   socket.on('user:update_avatar', ({ avatar }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     USERS[currentAuthUser].avatar = avatar;
@@ -92,6 +113,7 @@ io.on('connection', (socket) => {
     cb({ success: true, avatar });
   });
 
+  // โบนัสรายวัน 2,000
   socket.on('user:claim_daily', (_, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const user = USERS[currentAuthUser];
@@ -106,6 +128,7 @@ io.on('connection', (socket) => {
     cb({ success: true, chips: user.chips });
   });
 
+  // แอดมิน: เร่งเวลา 1 วัน
   socket.on('admin:skip_day', (_, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false, msg: 'ปฏิเสธสิทธิ์' });
     const user = USERS[currentAuthUser];
@@ -117,6 +140,7 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(user) });
   });
 
+  // แอดมิน: รายชื่อผู้เล่น & จัดการ
   socket.on('admin:get_players', (_, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false });
     cb({ success: true, list: Object.values(USERS).map(sanitizeUser) });
@@ -125,13 +149,14 @@ io.on('connection', (socket) => {
   socket.on('admin:mod_user', ({ targetUser, addChips, clearDebt, toggleBan }, cb) => {
     if (!currentAuthUser || USERS[currentAuthUser].role !== 'admin') return cb({ success: false });
     const u = USERS[targetUser];
-    if (!u) return cb({ success: false, msg: 'ไม่พบผู้ใช้' });
+    if (!u) return cb({ success: false, msg: 'ไม่พบบัญชี' });
     if (addChips) u.chips += Number(addChips);
     if (clearDebt) u.bankDebt = 0;
     if (toggleBan !== undefined) u.isBanned = toggleBan;
     cb({ success: true, user: sanitizeUser(u) });
   });
 
+  // ระบบธนาคาร
   socket.on('bank:action', ({ type, amount }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const u = USERS[currentAuthUser];
@@ -156,6 +181,7 @@ io.on('connection', (socket) => {
     cb({ success: true, user: sanitizeUser(u) });
   });
 
+  // สร้างห้อง
   socket.on('room:create', ({ roomName, maxPlayers, password, mode }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -188,6 +214,7 @@ io.on('connection', (socket) => {
     broadcastLobbyRooms();
   });
 
+  // เข้าร่วมห้อง
   socket.on('room:join', ({ roomCode, password }, cb) => {
     if (!currentAuthUser) return cb({ success: false });
     const room = ROOMS[roomCode];
@@ -204,6 +231,7 @@ io.on('connection', (socket) => {
     broadcastLobbyRooms();
   });
 
+  // ลุกจากโต๊ะ
   socket.on('game:stand_up', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -224,6 +252,7 @@ io.on('connection', (socket) => {
     checkAndCleanEmptyRoom(currentRoomId);
   });
 
+  // นั่งลงเล่น
   socket.on('game:sit_down', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
@@ -244,11 +273,11 @@ io.on('connection', (socket) => {
     emitRoomState(room);
   });
 
+  // กดเริ่มเกมส์
   socket.on('game:start_click', () => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
 
-    // ดึงคนที่รออยู่เข้ามาร่วมเล่นเมื่อกองกลางเป็น 0
     if (room.pot === 0 && room.waitingQueue.length > 0) {
       while (room.waitingQueue.length > 0 && room.players.length < room.maxPlayers) {
         room.players.push(room.waitingQueue.shift());
@@ -257,23 +286,30 @@ io.on('connection', (socket) => {
     startNewGameRound(room);
   });
 
+  // วางเดิมพัน (บังคับตรวจสอบ: เดิมพันได้เฉพาะรอบตัวเองเท่านั้น)
   socket.on('game:bet', ({ amount }) => {
     if (!currentRoomId || !ROOMS[currentRoomId]) return;
     const room = ROOMS[currentRoomId];
     if (!room.isGameRunning) return;
 
     const player = room.players[room.activeTurnIndex];
-    if (!player || player.username !== currentAuthUser) return;
+    if (!player || player.username !== currentAuthUser) {
+      return socket.emit('game:msg', 'ยังไม่ถึงรอบของคุณ ไม่สามารถวางเดิมพันได้');
+    }
 
     clearTimeout(room.timer);
     processPlayerBet(room, player, amount);
   });
 
+  // ออกจากห้อง
   socket.on('room:leave', () => {
     if (socket.currentRoomId) handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
   });
 
   socket.on('disconnect', () => {
+    if (currentAuthUser && ACTIVE_SESSIONS[currentAuthUser] === socket.id) {
+      delete ACTIVE_SESSIONS[currentAuthUser];
+    }
     if (socket.currentRoomId) handlePlayerLeave(socket, socket.currentRoomId, currentAuthUser);
   });
 });
@@ -312,8 +348,9 @@ function joinRoomInternal(socket, roomCode, username) {
     username,
     chips: USERS[username].chips,
     hand: [],
-    avatar: USERS[username].avatar || { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', mustache: 'handlebar', expression: 'smirk' },
-    isWaiting: room.isGameRunning
+    avatar: USERS[username].avatar || { hatStyle: 'cattleman', hatColor: '#4a2e18', skinTone: '#ffd1a4', sleeveColor: '#881337', badge: 'star' },
+    isWaiting: room.isGameRunning,
+    lastBet: 0
   };
 
   if (room.isGameRunning) {
@@ -322,7 +359,7 @@ function joinRoomInternal(socket, roomCode, username) {
     room.players.push(playerObj);
   }
 
-  // เติมบอทหากเลือกโหมดบอท
+  // เติมบอทอัตโนมัติหากเลือกโหมดบอท
   if (room.mode === 'bot' && (room.players.length + room.waitingQueue.length) < room.maxPlayers) {
     let botIdx = 0;
     while ((room.players.length + room.waitingQueue.length) < room.maxPlayers) {
@@ -332,9 +369,10 @@ function joinRoomInternal(socket, roomCode, username) {
         username: bName,
         chips: 2000,
         hand: [],
-        avatar: { hatStyle: bData.hat, hatColor: bData.hatColor, skinTone: bData.skin, mustache: bData.stache, expression: 'smirk' },
+        avatar: { hatStyle: bData.hat, hatColor: bData.hatColor, skinTone: bData.skin, sleeveColor: bData.sleeve, badge: bData.badge },
         isBot: true,
-        isWaiting: false
+        isWaiting: false,
+        lastBet: 0
       });
       botIdx++;
     }
@@ -342,7 +380,6 @@ function joinRoomInternal(socket, roomCode, username) {
 
   emitRoomState(room);
 
-  // แจ้งเตือนขึ้นปุ่มกดเริ่มเกมส์รอบแรกทันทีเมื่อเข้าห้องและเกมยังไม่ได้เริ่ม
   if (!room.isGameRunning) {
     io.to(room.code).emit('game:need_start_click', 'โต๊ะพร้อมแล้ว! กดเริ่มเกมส์เพื่อเริ่มเล่นรอบแรก (หัก Ante 50)');
   }
@@ -352,17 +389,16 @@ function startNewGameRound(room) {
   room.isGameRunning = true;
   room.deck = createDeck();
 
-  // หัก Ante 50 เหรียญในรอบแรก หรือเมื่อกองกลางหมด (Pot = 0)
   if (room.pot === 0) {
     room.players.forEach(p => {
       const ante = Math.min(50, p.chips);
       p.chips -= ante;
+      p.lastBet = ante;
       room.pot += ante;
       if (USERS[p.username]) USERS[p.username].chips = p.chips;
     });
   }
 
-  // แจกไพ่ 4 ใบ
   room.players.forEach(p => {
     p.hand = [room.deck.pop(), room.deck.pop(), room.deck.pop(), room.deck.pop()];
   });
@@ -403,6 +439,7 @@ function processPlayerBet(room, player, amount) {
   if (finalBet > maxPossible) finalBet = maxPossible;
 
   player.chips -= finalBet;
+  player.lastBet = finalBet;
   if (USERS[player.username]) USERS[player.username].chips = player.chips;
 
   const communityCard = room.deck.pop() || createDeck().pop();
@@ -412,7 +449,6 @@ function processPlayerBet(room, player, amount) {
     round: room.round
   });
 
-  // คัดเลือกเฉพาะใบที่ชนะและแต้มสูงที่สุดใบเดียว
   let highestWinningCard = null;
   player.hand.forEach(c => {
     if (c.suit === communityCard.suit && c.value > communityCard.value) {
@@ -554,7 +590,8 @@ function emitRoomState(room) {
       cardCount: p.hand.length,
       hand: p.hand,
       avatar: p.avatar,
-      isBot: p.isBot
+      isBot: p.isBot,
+      lastBet: p.lastBet || 0
     })),
     waitingCount: room.waitingQueue.length,
     spectators: room.spectators,
